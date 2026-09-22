@@ -23,7 +23,13 @@ main  ----o----o----o----o----o----o----o------->
 
 ## This assignment's branches
 
-For P1-A2, the work was done on `feature/p1-a2-fullstack` (settings split,
-env vars, four views, templates) and merged back into `main` once the four
-view URLs were verified working and the empty/non-empty template states
-were confirmed.
+For P1-A2, work was split across the team by section, with each person branching off `main` and merging back via their own PR:
+
+| Branch | Author | PR | Covers |
+| --- | --- | --- | --- |
+| `feature/p1-a2-templates` | omkarchougule19 | #1 | Section 3: base template + list template |
+| `feature/p1-a2-settings` | aagamshah15 | #2 | Section 1B: split settings + env-based secrets |
+| `feature/p1-a2-docs` | ayshukla9 | #3 | README, docs/ (wireframes, notes, branching strategy), screenshots |
+| `feature/p1-a2-views` | Pseudopooja | #4 | Section 2: four view styles + URLs |
+
+All four branches were merged into `main` once their piece was verified working.
