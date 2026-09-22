@@ -1,0 +1,81 @@
+ClaimSense -- Team 10 -- Notes
+================================
+
+WEEK OF SEPT 15-19 (P1-A2: Fullstack Development + GitHub Secrets)
+--------------------------------------------------------------------
+
+Progress this week:
+- Split settings.py into settings/base.py, development.py, production.py.
+  base.py holds everything shared; development.py sets DEBUG=True and a
+  fixed localhost ALLOWED_HOSTS; production.py sets DEBUG=False and reads
+  ALLOWED_HOSTS from the environment.
+- Moved SECRET_KEY (and a placeholder external API key) out of settings
+  entirely -- both now come from a local .env file via python-dotenv.
+  .env is gitignored; .env.example is committed with safe placeholders
+  so any teammate can copy it and fill in their own values.
+- Added .gitignore covering .env, __pycache__, .venv/.idea (db.sqlite3
+  is deliberately NOT in it -- see reminder below).
+- Implemented the four required view styles against the Bill model (see
+  "View types" below) and wired them to four named URLs.
+- Built base.html (shared layout + nav) and one bill_list.html that all
+  four views reuse -- same data, four different ways of getting it there.
+- Verified both the normal list state and the empty state (temporarily
+  rendered with an empty queryset) -- screenshots in docs/screenshots/.
+- Deleted the leftover "TEST-CASCADE" test bill from Part 4's on_delete
+  testing so screenshots only show real data (5 bills now, not 6).
+
+Reminders / notes for teammates:
+- Copy .env.example to .env locally before running the server -- the
+  project will not start without SECRET_KEY set.
+- db.sqlite3 IS committed to git (not gitignored) -- on purpose, so
+  cloning the repo gives you real data and the required superuser
+  accounts immediately, no fixture-loading step needed. This means:
+  pull before you start working, and let a teammate know before you
+  add/delete a lot of test data, since it'll show up in their next pull.
+
+Challenges:
+- wsgi.py/asgi.py default to production settings, manage.py defaults to
+  development -- worth double-checking DJANGO_SETTINGS_MODULE explicitly
+  if we deploy anywhere, so we don't accidentally run with DEBUG=True.
+
+View types (Section 2 requirement)
+------------------------------------
+All four views live in claims/views.py and list Bill records.
+
+1. bill_list_manual        -- HttpResponse (manual). Loads
+   claims/bill_list.html by hand with loader.get_template() and wraps
+   the rendered string in an HttpResponse ourselves.
+   URL: /bills/manual/  (name: claims:bill-list-manual)
+
+2. bill_list_render        -- render() shortcut. Queries Bill.objects.all(),
+   builds a context dict, lets render() do the rest.
+   URL: /bills/render/  (name: claims:bill-list-render)
+
+3. BillListBaseView        -- base CBV (django.views.View) with an explicit
+   get() method; same query/template as #2, expressed as a class.
+   URL: /bills/cbv-base/  (name: claims:bill-list-cbv-base)
+
+4. BillListView            -- generic CBV (ListView). model=Bill,
+   template_name and context_object_name set explicitly so it renders the
+   same shared template as the other three.
+   URL: /bills/cbv-generic/  (name: claims:bill-list-cbv-generic)
+
+Reflection (bonus)
+---------------------
+HttpResponse (manual) vs render():
+  The manual HttpResponse view felt useful mainly as a teaching example --
+  it makes visible what render() normally hides (loading the template,
+  calling .render() on it, wrapping the string in a response object). In
+  practice we'd always reach for render() day to day: it's one line
+  instead of three and does exactly the same thing for a normal
+  request/response, with less room to forget the HttpResponse wrapper.
+
+Base CBV (View) vs Generic CBV (ListView):
+  The base View subclass earns its keep once a route needs custom logic
+  per HTTP method (e.g. different behavior for GET vs POST) that doesn't
+  match any generic view's assumptions. For a plain "list all the rows"
+  page like this one, ListView is strictly less code for the same result
+  -- Django already knows how to paginate, name the context variable, and
+  pick a default template. We'd reach for the generic CBV first and only
+  drop down to a base View when a generic one doesn't fit the shape of
+  what the page actually needs to do.
