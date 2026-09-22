@@ -1,0 +1,28 @@
+# Environment / secrets -- never commit
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Django
+staticfiles/
+media/
+
+# Note: db.sqlite3 is intentionally NOT gitignored -- committed on purpose
+# so a fresh clone has real data and the required superuser accounts
+# without needing a separate fixture-loading step. See docs/notes/notes.txt.
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
