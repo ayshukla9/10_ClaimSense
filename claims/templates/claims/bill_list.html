@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Bills -- ClaimSense{% endblock %}
+
+{% block content %}
+<h2>Bills</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Reference #</th>
+            <th>Patient</th>
+            <th>Provider</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for bill in bills %}
+        <tr>
+            <td>{{ bill.reference_number }}</td>
+            <td>{{ bill.patient.name }}</td>
+            <td>{{ bill.provider.name }}</td>
+            <td>{{ bill.bill_date }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">
+                <div class="empty-state">
+                    <strong>No bills logged yet.</strong><br>
+                    Add one in Django Admin to see it appear here.
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
