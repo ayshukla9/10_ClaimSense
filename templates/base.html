@@ -1,32 +1,26 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}ClaimSense{% endblock %}</title>
-    <style>
-        body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; color: #1a1a1a; }
-        header { border-bottom: 2px solid #1a1a1a; padding-bottom: 12px; margin-bottom: 24px; }
-        header h1 { margin: 0 0 4px 0; font-size: 1.5rem; }
-        header p { margin: 0; color: #666; font-size: 0.85rem; font-style: italic; }
-        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-        th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #ddd; }
-        th { background: #f5f5f5; }
-        .empty-state { padding: 24px; text-align: center; color: #666; border: 1px dashed #ccc; border-radius: 6px; }
-        nav { margin-bottom: 20px; font-size: 0.85rem; }
-        nav a { margin-right: 14px; }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1">
 </head>
 <body>
     <header>
-        <h1>ClaimSense</h1>
+        <h1>Claim<span>Sense</span></h1>
         {% if view_label %}<p>{{ view_label }}</p>{% endif %}
     </header>
     <nav>
-        <a href="{% url 'claims:bill-list-manual' %}">Manual</a>
-        <a href="{% url 'claims:bill-list-render' %}">render()</a>
-        <a href="{% url 'claims:bill-list-cbv-base' %}">Base CBV</a>
-        <a href="{% url 'claims:bill-list-cbv-generic' %}">Generic CBV</a>
+        <a href="{% url 'claims:home' %}">Home</a>
+        <a href="{% url 'claims:bill-list-render' %}">All Bills</a>
+        <a href="{% url 'claims:bill-search' %}">Search</a>
+        <a href="{% url 'claims:bill-lookup' %}">Lookup</a>
+        <a href="{% url 'claims:bill-summary' %}">Summary</a>
+        <a href="{% url 'claims:charts' %}">Charts</a>
+        <a href="{% url 'claims:bill-manage' %}">Manage</a>
+        <a href="{% url 'claims:api-bills' %}">API</a>
     </nav>
     <main>
         {% block content %}{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Manage -- ClaimSense{% endblock %}
+{% block content %}
+<h2>Filter bills (GET)</h2>
+<form method="get">
+    <input name="q" value="{{ q }}" placeholder="reference #">
+    <button>Filter</button>
+</form>
+<h2>Add a bill (POST)</h2>
+<form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <button>Create bill</button>
+</form>
+<h2>Bills</h2>
+{% include "claims/_bill_table.html" %}
+{% endblock %}

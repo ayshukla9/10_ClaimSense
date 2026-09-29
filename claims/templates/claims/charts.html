@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Charts -- ClaimSense{% endblock %}
+{% block content %}
+<h2>Bills per Provider</h2>
+<figure>
+    <img src="{% url 'claims:chart-bills-per-provider' %}" alt="Bar chart showing the number of bills for each provider">
+    <figcaption>Live counts from the database, rendered server-side with Matplotlib.</figcaption>
+</figure>
+{% endblock %}

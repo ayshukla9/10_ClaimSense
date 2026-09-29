@@ -17,3 +17,11 @@ ALLOWED_HOSTS = [
     for host in os.environ.get("ALLOWED_HOSTS", "").split(",")
     if host.strip()
 ]
+
+
+# Cache busting (P1-A3 Section 3 bonus): hashed filenames after collectstatic
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"},
+}

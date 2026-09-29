@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Search -- ClaimSense{% endblock %}
+{% block content %}
+<h2>Search bills by provider (GET)</h2>
+<p>The search term lives in the URL, so this link can be bookmarked or shared and shows the same results.</p>
+<form method="get">
+    <input name="provider" value="{{ q }}" placeholder="provider name">
+    <button>Search</button>
+</form>
+{% if q %}<p>Showing results for "<strong>{{ q }}</strong>": {{ bills|length }} found.</p>{% endif %}
+{% include "claims/_bill_table.html" %}
+{% endblock %}

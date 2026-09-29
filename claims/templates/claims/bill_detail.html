@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Bill {{ bill.reference_number }} -- ClaimSense{% endblock %}
+{% block content %}
+<h2>Bill {{ bill.reference_number }}</h2>
+<div class="card">
+    <p><strong>Patient:</strong> {{ bill.patient.name }}<br>
+    <strong>Provider:</strong> {{ bill.provider.name }} ({{ bill.provider.get_network_status_display }})<br>
+    <strong>Plan:</strong> {{ bill.insurance_plan }}<br>
+    <strong>Date:</strong> {{ bill.bill_date }}</p>
+</div>
+<h3>Line items</h3>
+<table>
+    <thead><tr><th>#</th><th>Description</th><th>Charged</th><th>Covered</th><th>You owe</th></tr></thead>
+    <tbody>
+        {% for li in line_items %}
+        <tr><td>{{ li.line_number }}</td><td>{{ li.description }}</td>
+            <td>${{ li.charged_amount }}</td><td>${{ li.estimated_covered_amount }}</td>
+            <td>${{ li.estimated_patient_responsibility }}</td></tr>
+        {% empty %}
+        <tr><td colspan="5"><div class="empty-state">No line items.</div></td></tr>
+        {% endfor %}
+    </tbody>
+    {% if line_items %}
+    <tfoot><tr><th colspan="2">Totals</th><th>${{ totals.charged }}</th><th>${{ totals.covered }}</th><th>${{ totals.patient }}</th></tr></tfoot>
+    {% endif %}
+</table>
+<p><a href="{% url 'claims:home' %}">&larr; Back home</a></p>
+{% endblock %}
