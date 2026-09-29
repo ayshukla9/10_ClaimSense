@@ -79,3 +79,34 @@ Base CBV (View) vs Generic CBV (ListView):
   pick a default template. We'd reach for the generic CBV first and only
   drop down to a base View when a generic one doesn't fit the shape of
   what the page actually needs to do.
+
+
+=====================================================
+P1-A3 Notes
+=====================================================
+
+Section 1 - get_absolute_url()
+  Useful for Bill: every bills table (via _bill_table.html) links to the detail page with
+  {{ bill.get_absolute_url }}, and the create form redirects to the new bill through it.
+  The URL is defined once, so changing the route never breaks a template.
+
+Section 2 - GET vs POST search
+  GET (provider search): the term is in the URL, so the same link always loads the same
+  results and can be bookmarked or shared.
+  POST (patient email lookup): the email is sensitive, so it goes in the request body and
+  stays out of the URL, browser history and server logs.
+
+Section 3 - Static files
+  Project-level static/ folder (STATICFILES_DIRS) because the whole site shares one stylesheet.
+  Cache busting: base.html links style.css?v=1 (bump the number on change). In production,
+  ManifestStaticFilesStorage adds a content hash to filenames on collectstatic.
+
+Section 4 - Charts
+  Counts come from Provider.objects.annotate(Count("bills")). The PNG is built in a BytesIO
+  buffer (no disk writes) and plt.close(fig) frees the figure. Each request holds a few
+  hundred KB of RAM briefly; the Agg backend avoids needing a display.
+
+Section 6 - API plan
+  Serve bills as JSON (id, reference number, date, provider, plan), filterable by provider,
+  plan and date. Patient details are deliberately excluded because the endpoint is public.
+  HttpResponse defaults to text/html; JsonResponse sends application/json.

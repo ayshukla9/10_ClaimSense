@@ -1,7 +1,5 @@
 from django.db import models
-
-# Create your models here.
-from django.db import models
+from django.urls import reverse
 
 
 class InsurancePlan(models.Model):
@@ -128,6 +126,9 @@ class Bill(models.Model):
                 name="unique_bill_reference_per_patient",
             )
         ]
+
+    def get_absolute_url(self):
+        return reverse("claims:bill-detail", args=[self.pk])
 
     def __str__(self):
         return f"{self.reference_number} - {self.patient.name}"

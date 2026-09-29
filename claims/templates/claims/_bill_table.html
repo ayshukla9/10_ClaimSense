@@ -1,0 +1,17 @@
+<table>
+    <thead>
+        <tr><th>Reference #</th><th>Patient</th><th>Provider</th><th>Date</th></tr>
+    </thead>
+    <tbody>
+        {% for bill in bills %}
+        <tr>
+            <td><a href="{{ bill.get_absolute_url }}">{{ bill.reference_number }}</a></td>
+            <td>{{ bill.patient.name }}</td>
+            <td>{{ bill.provider.name }}</td>
+            <td>{{ bill.bill_date }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4"><div class="empty-state"><strong>No bills found.</strong></div></td></tr>
+        {% endfor %}
+    </tbody>
+</table>

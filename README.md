@@ -77,3 +77,12 @@ shared template (`claims/bill_list.html`):
 
 See `docs/notes/notes.txt` for what each one is for and when we'd reach
 for one over another.
+
+
+## P1-A3: Data-driven pages
+
+ClaimSense now has a home page, a shared nav bar, and bill detail pages (`/bills/<pk>/`) linked through `Bill.get_absolute_url()`. Search (GET by provider, POST by patient email), a summary page with ORM aggregations, and a Matplotlib chart at `/charts/bills-per-provider.png` are live. Styling comes from `static/css/style.css`.
+
+**API:** `GET /api/bills/` returns JSON (`JsonResponse`). Optional query params: `provider` (name contains), `plan` (plan name contains), `since` (`YYYY-MM-DD`). `/api/bills/plain/` returns the same data via `HttpResponse` (text/html) for the MIME comparison, and `/api/bills/cbv/` is the class-based version. No patient data is exposed.
+
+**UI note:** custom CSS (navy/gold palette, serif headings, styled header, nav bar and tables) replaces the old inline `<style>` block.

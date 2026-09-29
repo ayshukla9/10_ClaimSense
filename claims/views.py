@@ -77,3 +77,34 @@ class BillListView(ListView):
     template_name = "claims/bill_list.html"
     context_object_name = "bills"
     extra_context = {"view_label": "View 4: Generic CBV (ListView)"}
+
+
+# ---- P1-A3 Section 1: home + detail ----
+from django.db.models import Sum
+from django.views.generic import DetailView, TemplateView
+
+
+class HomeView(TemplateView):
+    template_name = "claims/home.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["recent_bills"] = Bill.objects.select_related("patient", "provider")[:5]
+        ctx["total_bills"] = Bill.objects.count()
+        return ctx
+
+
+class BillDetailView(DetailView):
+    model = Bill
+    template_name = "claims/bill_detail.html"
+    queryset = Bill.objects.select_related("patient", "provider", "insurance_plan")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["line_items"] = self.object.line_items.all()
+        ctx["totals"] = self.object.line_items.aggregate(
+            charged=Sum("charged_amount"),
+            covered=Sum("estimated_covered_amount"),
+            patient=Sum("estimated_patient_responsibility"),
+        )
+        return ctx
