@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Vega-Lite Charts -- ClaimSense{% endblock %}
+{% block content %}
+<h2>Vega-Lite Charts</h2>
+<p>Both charts pull their data from our own JSON API.</p>
+
+<h3>Total charged per provider</h3>
+<div id="chart1" class="vega-chart"></div>
+<p class="chart-links">
+    Data: <a href="{% url 'claims:api-summary-providers' %}">{% url 'claims:api-summary-providers' %}</a> |
+    <a href="{% static 'vega-lite/charged_per_provider.vl.json' %}">Vega-Lite spec</a> |
+    <a href="{% url 'claims:vega-chart-png' 'chart1' %}">PNG</a>
+</p>
+
+<h3>Charges over time</h3>
+<div id="chart2" class="vega-chart"></div>
+<p class="chart-links">
+    Data: <a href="{% url 'claims:api-summary-bills' %}">{% url 'claims:api-summary-bills' %}</a> |
+    <a href="{% static 'vega-lite/charges_over_time.vl.json' %}">Vega-Lite spec</a> |
+    <a href="{% url 'claims:vega-chart-png' 'chart2' %}">PNG</a>
+</p>
+
+<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+<script>
+    const charts = {
+        "#chart1": "{% static 'vega-lite/charged_per_provider.vl.json' %}",
+        "#chart2": "{% static 'vega-lite/charges_over_time.vl.json' %}",
+    };
+    for (const [target, specUrl] of Object.entries(charts)) {
+        vegaEmbed(target, specUrl, {actions: {editor: false}}).catch((err) => {
+            document.querySelector(target).textContent = "Chart failed to load: " + err.message;
+        });
+    }
+</script>
+{% endblock %}

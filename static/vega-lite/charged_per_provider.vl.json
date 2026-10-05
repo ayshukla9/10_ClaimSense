@@ -1,0 +1,25 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Total charged per provider",
+  "description": "Bar chart: total billed amount for each provider, coloured by network status.",
+  "width": 520,
+  "height": 300,
+  "data": {"url": "/api/summary/providers/"},
+  "mark": {"type": "bar", "tooltip": true},
+  "encoding": {
+    "x": {"field": "provider", "type": "nominal", "title": "Provider", "sort": "-y", "axis": {"labelAngle": -20}},
+    "y": {"field": "total_charged", "type": "quantitative", "title": "Total charged (USD)", "axis": {"format": "$,.0f"}},
+    "color": {
+      "field": "network_status",
+      "type": "nominal",
+      "title": "Network",
+      "scale": {"domain": ["In Network", "Out of Network"], "range": ["#13294b", "#ffb612"]}
+    },
+    "tooltip": [
+      {"field": "provider", "title": "Provider"},
+      {"field": "bill_count", "title": "Bills"},
+      {"field": "total_charged", "title": "Charged", "format": "$,.2f"},
+      {"field": "patient_responsibility", "title": "Patient owes", "format": "$,.2f"}
+    ]
+  }
+}

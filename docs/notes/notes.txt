@@ -110,3 +110,35 @@ Section 6 - API plan
   Serve bills as JSON (id, reference number, date, provider, plan), filterable by provider,
   plan and date. Patient details are deliberately excluded because the endpoint is public.
   HttpResponse defaults to text/html; JsonResponse sends application/json.
+
+
+=====================================================
+P1-A4 Notes
+=====================================================
+
+Part 1 - Internal API + Vega-Lite
+  Added /api/summary/providers/ and /api/summary/bills/. They return a plain list of rows
+  because that is what Vega-Lite reads from data.url without any extra config. The queries
+  are in claims/summaries.py so the reports page and the exports use the same numbers.
+  Two charts on /vega-lite/: bar (total charged per provider) and line (charged vs covered
+  vs patient owes over time). /vega-lite/chart1.png and chart2.png give the same charts as
+  images (vl-convert).
+
+Part 2 - External API
+  We went with the HCPCS search from NLM Clinical Tables. No key needed, and nih.gov is on
+  the PythonAnywhere free allowlist so it should still work after we deploy.
+  /api/procedures/?q=imaging puts the codes next to our own line items for that keyword.
+  If their API is slow or down we return a 504/502 with an error message, not a crash.
+
+Part 3 - Exports + reports
+  CSV and JSON export of bills with the timestamp in the filename. The JSON has generated_at
+  and record_count. We left patient name/email out of the export for now since there is no
+  login yet (A5).
+
+Part 4 - Deployment prep
+  Moved STATIC_ROOT to base.py so collectstatic works with both settings files. staticfiles/
+  is gitignored, we run collectstatic again on the server. Added requests and
+  vl-convert-python to requirements.txt. db.sqlite3 stays in the repo.
+
+Reminder for teammates:
+- pip install -r requirements.txt again after pulling, there are two new packages.

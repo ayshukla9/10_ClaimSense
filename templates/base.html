@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}ClaimSense{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2">
 </head>
 <body>
     <header>
@@ -18,7 +18,10 @@
         <a href="{% url 'claims:bill-search' %}">Search</a>
         <a href="{% url 'claims:bill-lookup' %}">Lookup</a>
         <a href="{% url 'claims:bill-summary' %}">Summary</a>
+        <a href="{% url 'claims:reports' %}">Reports</a>
         <a href="{% url 'claims:charts' %}">Charts</a>
+        <a href="{% url 'claims:vega-charts' %}">Vega-Lite</a>
+        <a href="{% url 'claims:procedure-lookup' %}">Procedures</a>
         <a href="{% url 'claims:bill-manage' %}">Manage</a>
         <a href="{% url 'claims:api-bills' %}">API</a>
     </nav>
