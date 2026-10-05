@@ -18,3 +18,7 @@ button { background: var(--navy); color: #fff; border: 0; border-radius: 4px; cu
 .empty-state { padding: 24px; text-align: center; color: #666; border: 1px dashed #ccc; border-radius: 6px; }
 .card { background: #fff; padding: 12px 18px; border-radius: 6px; border: 1px solid #e2e6ee; margin: 12px 0; }
 figure { margin: 16px 0; } figure img { max-width: 100%; border: 1px solid #ddd; background: #fff; }
+.btn { display: inline-block; background: var(--navy); color: #fff; padding: 8px 14px; border-radius: 4px; text-decoration: none; font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: .9rem; margin-right: 8px; }
+.btn:hover { background: #0d1e38; }
+.vega-chart { background: #fff; border: 1px solid #e2e6ee; border-radius: 6px; padding: 12px; overflow-x: auto; }
+.chart-links { font-size: .85rem; color: #555; }

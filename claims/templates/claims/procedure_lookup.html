@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Procedure Lookup -- ClaimSense{% endblock %}
+{% block content %}
+<h2>Procedure Lookup</h2>
+<p>Type a procedure keyword (try <em>imaging</em>, <em>emergency</em> or <em>blood</em>) to see what our bills charged
+    for it and the official HCPCS billing codes that match.</p>
+<form method="get">
+    <input type="text" name="q" value="{{ q }}" placeholder="Procedure keyword" required>
+    <button type="submit">Search</button>
+    {% if q %}<a href="{% url 'claims:api-procedures' %}?q={{ q|urlencode }}">View as JSON</a>{% endif %}
+</form>
+
+{% if error %}
+<div class="empty-state"><strong>{{ error }}</strong> Please try again in a moment.</div>
+{% elif result %}
+<div class="card">
+    <strong>{{ result.claimsense.matching_line_items }}</strong> matching line item(s) in ClaimSense
+    {% if result.claimsense.matching_line_items %}
+    -- average charge <strong>${{ result.claimsense.average_charged|floatformat:2 }}</strong>
+    (range ${{ result.claimsense.min_charged|floatformat:2 }} to ${{ result.claimsense.max_charged|floatformat:2 }}),
+    plan covers <strong>{{ result.claimsense.coverage_rate_pct }}%</strong>
+    {% endif %}
+    | <strong>{{ result.hcpcs.total_matches }}</strong> HCPCS code(s) match.
+</div>
+
+<h3>Our line items matching "{{ result.query }}"</h3>
+<table>
+    <thead><tr><th>Bill</th><th>Provider</th><th>Description</th><th>Charged</th></tr></thead>
+    <tbody>
+        {% for item in result.claimsense.line_items %}
+        <tr><td>{{ item.bill }}</td><td>{{ item.provider }}</td><td>{{ item.description }}</td><td>${{ item.charged_amount|floatformat:2 }}</td></tr>
+        {% empty %}
+        <tr><td colspan="4"><div class="empty-state">No line items match this term.</div></td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h3>HCPCS codes (showing {{ result.hcpcs.returned }} of {{ result.hcpcs.total_matches }})</h3>
+<table>
+    <thead><tr><th>Code</th><th>Description</th></tr></thead>
+    <tbody>
+        {% for code in result.hcpcs.codes %}
+        <tr><td>{{ code.code }}</td><td>{{ code.description }}</td></tr>
+        {% empty %}
+        <tr><td colspan="2"><div class="empty-state">No HCPCS codes match this term.</div></td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.http import HttpResponse, JsonResponse
 from django.views import View
 
+from . import summaries
 from .models import Bill
 
 
@@ -62,3 +63,14 @@ class BillAPIView(View):
         except ValidationError:
             return _bad_date()
         return JsonResponse({"count": len(data), "bills": data})
+
+
+# ---- P1-A4 Part 1: summary endpoints for the Vega-Lite charts ----
+def api_summary_providers(request):
+    """One row per provider. Plain list (safe=False) because Vega-Lite wants an array."""
+    return JsonResponse(summaries.provider_summary(), safe=False)
+
+
+def api_summary_bills(request):
+    """One row per bill, oldest first."""
+    return JsonResponse(summaries.bill_summary(), safe=False)

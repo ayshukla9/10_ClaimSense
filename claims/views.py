@@ -7,11 +7,12 @@ demonstrate separation of concerns between "how the view gets its data"
 and "how the data is displayed".
 """
 
+from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.template import loader
 from django.views import View
-from django.views.generic import ListView
+from django.views.generic import DetailView, ListView, TemplateView
 
 from .models import Bill
 
@@ -80,10 +81,6 @@ class BillListView(ListView):
 
 
 # ---- P1-A3 Section 1: home + detail ----
-from django.db.models import Sum
-from django.views.generic import DetailView, TemplateView
-
-
 class HomeView(TemplateView):
     template_name = "claims/home.html"
 

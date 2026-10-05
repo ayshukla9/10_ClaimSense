@@ -58,9 +58,14 @@ ClaimSense/
     │                         # Provider, Bill, BillLineItem
     ├── models.py
     ├── admin.py
-    ├── views.py               # 2 FBVs + 2 CBVs (P1-A2)
+    ├── views.py               # 2 FBVs + 2 CBVs (P1-A2), home + detail
+    ├── summaries.py           # shared aggregations (API, charts, reports)
+    ├── views_api.py           # JSON API
+    ├── views_vega.py          # Vega-Lite page + PNG endpoints
+    ├── views_external.py      # HCPCS lookup (external API)
+    ├── views_exports.py       # CSV / JSON exports + reports page
     ├── urls.py
-    └── templates/claims/bill_list.html
+    └── templates/claims/
 ```
 
 ## Views (P1-A2)
@@ -86,3 +91,31 @@ ClaimSense now has a home page, a shared nav bar, and bill detail pages (`/bills
 **API:** `GET /api/bills/` returns JSON (`JsonResponse`). Optional query params: `provider` (name contains), `plan` (plan name contains), `since` (`YYYY-MM-DD`). `/api/bills/plain/` returns the same data via `HttpResponse` (text/html) for the MIME comparison, and `/api/bills/cbv/` is the class-based version. No patient data is exposed.
 
 **UI note:** custom CSS (navy/gold palette, serif headings, styled header, nav bar and tables) replaces the old inline `<style>` block.
+
+## P1-A4: APIs, Vega-Lite charts, exports, deployment
+
+**Chart API:** `/api/summary/providers/` (one row per provider) and `/api/summary/bills/` (one row per bill, oldest first). Both return a plain JSON list with bill counts and charged / covered / patient amounts. No patient data.
+
+**Vega-Lite:** two charts at `/vega-lite/` -- a bar chart (total charged per provider) and a line chart (charges over time). Specs are in `static/vega-lite/` and use `data.url` with the API above. PNG versions: `/vega-lite/chart1.png` and `/vega-lite/chart2.png`. Screenshots are in `docs/screenshots/` (`p1-a4-*`). To try a spec in the Vega editor, change `data.url` to the full deployed URL.
+
+**External API:** `/api/procedures/?q=imaging` searches HCPCS procedure codes (NLM Clinical Tables, no key) and returns them together with our own line items for that keyword (count, average, min/max, coverage %). `/procedures/` is the same thing as a page. Errors: no `q` -> 400, timeout -> 504, anything else from their side -> 502.
+
+**Exports + reports:** `/reports/` has the totals, a per-provider table, an in/out of network table and the Download CSV / Download JSON buttons (`/exports/bills.csv`, `/exports/bills.json`). Filenames are timestamped, e.g. `bills_2026-10-05_19-32.csv`.
+
+### Deploying on PythonAnywhere
+
+```bash
+git clone https://github.com/ayshukla9/10_ClaimSense.git
+cd 10_ClaimSense
+mkvirtualenv myenv-django --python=python3.12
+pip install -r requirements.txt
+echo "SECRET_KEY=<your key>" > .env
+python manage.py collectstatic --noinput --settings=claimsense_project.settings.production
+```
+
+Then in the Web tab:
+- Virtualenv: `/home/<username>/.virtualenvs/myenv-django`
+- Static files: `/static/` -> `/home/<username>/10_ClaimSense/staticfiles`
+- WSGI file: add the project folder to `sys.path` and set `DJANGO_SETTINGS_MODULE` to `claimsense_project.settings.production`
+
+`db.sqlite3` is in the repo so there is no need to migrate. Production settings accept any `*.pythonanywhere.com` host unless `ALLOWED_HOSTS` is set in `.env`.

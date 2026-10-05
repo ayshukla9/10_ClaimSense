@@ -1,0 +1,33 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Charges over time",
+  "description": "Line chart: amount charged, covered and owed by the patient for each bill, by bill date.",
+  "width": 520,
+  "height": 300,
+  "data": {"url": "/api/summary/bills/"},
+  "transform": [
+    {"fold": ["total_charged", "total_covered", "patient_responsibility"], "as": ["measure", "amount"]},
+    {
+      "calculate": "{'total_charged': 'Charged', 'total_covered': 'Covered by plan', 'patient_responsibility': 'Patient owes'}[datum.measure]",
+      "as": "series"
+    }
+  ],
+  "mark": {"type": "line", "point": true, "tooltip": true},
+  "encoding": {
+    "x": {"field": "bill_date", "type": "temporal", "title": "Bill date"},
+    "y": {"field": "amount", "type": "quantitative", "title": "Amount (USD)", "axis": {"format": "$,.0f"}},
+    "color": {
+      "field": "series",
+      "type": "nominal",
+      "title": "Amount",
+      "scale": {"domain": ["Charged", "Covered by plan", "Patient owes"], "range": ["#13294b", "#2a9d8f", "#e76f51"]}
+    },
+    "tooltip": [
+      {"field": "reference_number", "title": "Bill"},
+      {"field": "provider", "title": "Provider"},
+      {"field": "bill_date", "type": "temporal", "title": "Date"},
+      {"field": "series", "title": "Amount"},
+      {"field": "amount", "title": "USD", "format": "$,.2f"}
+    ]
+  }
+}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Reports -- ClaimSense{% endblock %}
+{% block content %}
+<h2>Reports</h2>
+<p>
+    <a class="btn" href="{% url 'claims:export-bills-csv' %}">Download CSV</a>
+    <a class="btn" href="{% url 'claims:export-bills-json' %}">Download JSON</a>
+</p>
+
+<div class="card">
+    <strong>Totals:</strong>
+    {{ totals.bill_count }} bill{{ totals.bill_count|pluralize }} |
+    ${{ totals.total_charged|floatformat:2 }} charged |
+    ${{ totals.total_covered|floatformat:2 }} covered by plan |
+    ${{ totals.patient_responsibility|floatformat:2 }} owed by patient
+</div>
+
+<h3>By provider</h3>
+<table>
+    <thead><tr><th>Provider</th><th>Network</th><th>Bills</th><th>Charged</th><th>Covered</th><th>Patient owes</th></tr></thead>
+    <tbody>
+        {% for row in per_provider %}
+        <tr>
+            <td>{{ row.provider }}</td><td>{{ row.network_status }}</td><td>{{ row.bill_count }}</td>
+            <td>${{ row.total_charged|floatformat:2 }}</td><td>${{ row.total_covered|floatformat:2 }}</td>
+            <td>${{ row.patient_responsibility|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6"><div class="empty-state">No providers yet.</div></td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h3>By network status</h3>
+<table>
+    <thead><tr><th>Network</th><th>Bills</th><th>Charged</th><th>Covered</th><th>Patient owes</th></tr></thead>
+    <tbody>
+        {% for row in per_network %}
+        <tr>
+            <td>{{ row.network_status }}</td><td>{{ row.bill_count }}</td>
+            <td>${{ row.total_charged|floatformat:2 }}</td><td>${{ row.total_covered|floatformat:2 }}</td>
+            <td>${{ row.patient_responsibility|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5"><div class="empty-state">No bills yet.</div></td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
