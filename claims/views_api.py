@@ -1,4 +1,4 @@
-"""Section 6: public JSON API (no patient PII exposed)."""
+"""Private bill APIs and one public plan catalogue aggregate."""
 import json
 
 from django.core.exceptions import ValidationError
@@ -74,3 +74,19 @@ def api_summary_providers(request):
 def api_summary_bills(request):
     """One row per bill, oldest first."""
     return JsonResponse(summaries.bill_summary(), safe=False)
+
+
+from django.db.models import Count
+from django.views.decorators.http import require_GET
+from .models import InsurancePlan
+
+
+@require_GET
+def public_plan_types(request):
+    """Public catalogue counts, with no patient/bill identifiers or amounts."""
+    rows = list(InsurancePlan.objects.order_by("plan_type")
+                .values("plan_type").annotate(plan_count=Count("pk")))
+    response = JsonResponse(rows, safe=False)
+    # Enables external browser consumers and the Vega Editor; this API is read-only.
+    response["Access-Control-Allow-Origin"] = "*"
+    return response

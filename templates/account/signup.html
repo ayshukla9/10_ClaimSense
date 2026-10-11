@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Sign up — ClaimSense{% endblock %}
+{% block content %}
+<h2>Sign up</h2>
+<form method="post" action="{% url 'account_signup' %}">
+{% csrf_token %}{{ form.as_p }}
+{% if redirect_field_value %}<input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">{% endif %}
+<button type="submit">Sign up</button>
+</form>
+{% include "account/_google.html" %}
+<p><a href="{% url 'account_login' %}">Already have an account? Log in</a></p>
+{% endblock %}

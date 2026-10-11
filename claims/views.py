@@ -86,8 +86,9 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx["recent_bills"] = Bill.objects.select_related("patient", "provider")[:5]
-        ctx["total_bills"] = Bill.objects.count()
+        if self.request.user.is_authenticated and self.request.user.is_staff:
+            ctx["recent_bills"] = Bill.objects.select_related("patient", "provider")[:5]
+            ctx["total_bills"] = Bill.objects.count()
         return ctx
 
 
