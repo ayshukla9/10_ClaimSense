@@ -1,4 +1,4 @@
-# P1-A5.1 implementation and honest completion status
+# P1-A5.1 implementation and submission status
 
 This work extends the existing ayshukla9/10_ClaimSense repository. No new repository is required.
 The available assignment preview ends at the beginning of Part 3; check the complete Canvas rubric before submission.
@@ -13,9 +13,19 @@ The available assignment preview ends at the beginning of Part 3; check the comp
 - A5 Vega-Lite .txt spec at `static/vega-lite/plan_types.txt`, displayed on the protected Vega-Lite page. Its relative URL queries the current deployed origin when hosted there. Existing private chart APIs remain usable by signed-in users within their record scope.
 - Three runnable alternative API consumers in `examples/` and a 290-second production demo script.
 
-## Blocked; do not claim completed
+## Production status — October 12, 2026
 
-The production domain, PythonAnywhere access, and real Google OAuth credentials have not been supplied. Production deployment, a successful real Google callback, a production-backed standalone .txt spec with the actual absolute URL, production screenshots and the team video remain unverified. The user said no production information/access was available. No production evidence is fabricated. The repository already tracks a SQLite database with accounts: do not expose that file through web/static hosting or overwrite the live database with it.
+A5 was merged into `main` at `5788b1f21f278f31dcc313070fc39a79d8e6a26f` and the PythonAnywhere checkout was updated to that commit. The team supplied successful production screenshots and command output; these observations describe the captured session, not a continuous uptime guarantee.
+
+- Website: https://okc2.pythonanywhere.com/
+- Public API: https://okc2.pythonanywhere.com/api/public/plan-types/
+- Real Google signup and returning login were completed. New accounts have no patient records until staff explicitly link them.
+- The linked regular demo account displayed five bills; reports and private charts were populated.
+- The public catalogue returned EPO 2, HMO 3, OTHER 1, PPO 1: seven plans across four types, including synthetic demonstration plans.
+- `docs/a5/production_plan_types.txt` was generated on the server and rendered in the external Vega-Lite editor using the absolute production API URL. Download and rename it to `group-x-vega-lite-API-demo.txt`, replacing `x` with the official group number.
+- CSV spreadsheet, external browser dashboard, and monitor PASS evidence were captured against production. See [the evidence register](evidence.md) for capture details and archive status.
+
+Still outstanding: record the team video (maximum 300 seconds), bring its opening into line with the full rubric, and assemble the submission files. Google Auth Platform remains External / Testing; Publish app is disabled pending Branding completion. Production availability needs a fresh check after a later browser connection-refused report. Secrets and demo credentials belong only in private course notes, never this repository. Preserve the live SQLite database and private `.env` when updating the deployment.
 
 ## Local checks
 
@@ -33,11 +43,11 @@ Tests exercise signup, password login/logout, CSRF, unsafe redirect rejection, e
 
 ## Google OAuth setup (both environments)
 
-1. In Google Cloud, configure the consent screen for the real project and add actual team Google accounts as test users if in testing mode. Create an OAuth client of type **Web application**.
+1. Use Google Cloud project `claimsense-511422` (ClaimSense), with an OAuth client of type **Web application**. Declare only the basic sign-in scopes: OpenID, email and profile. Complete Branding and publish when available. Google documents a Testing-mode test-user exception for apps requesting only these basic identity scopes; do not assume Testing alone blocks every grader. See [Google production readiness](https://developers.google.com/identity/protocols/oauth2/production-readiness/overview).
 2. Register exact redirect URIs:
    - `http://localhost:8000/accounts/google/login/callback/`
    - `http://127.0.0.1:8000/accounts/google/login/callback/` (if using that hostname locally)
-   - `https://ACTUAL-DOMAIN.pythonanywhere.com/accounts/google/login/callback/`
+   - `https://okc2.pythonanywhere.com/accounts/google/login/callback/`
 3. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in the local and server environment or private `.env`. Never commit them, show them in screenshots or paste them into the video.
 4. The configuration uses provider `APPS`; do not create a second Google SocialApp in Django admin. No Sites framework setup is necessary with this approach.
 5. Run migrations and reload the server. Both custom pages then enable Continue with Google. Google authorization starts via POST with CSRF and allauth verifies OAuth state. Use the actual domain's HTTPS URL; production settings trust PythonAnywhere's forwarded HTTPS header.
@@ -52,13 +62,13 @@ After review/merge of the feature branch into main:
 1. Back up the live SQLite database to a private server directory. Preserve the live `.env`, accounts and patient records. Prefer a private database path outside the checkout via `DATABASE_PATH`; migrate the existing data there without replacing it with the repository sample database.
 2. In the existing server checkout: `git pull --ff-only origin main`.
 3. Activate the existing web app virtualenv; `pip install -r requirements.txt`.
-4. Configure a strong SECRET_KEY, the exact `ALLOWED_HOSTS=ACTUAL-DOMAIN.pythonanywhere.com`, and Google credentials in private environment configuration.
+4. Configure a strong SECRET_KEY, the exact `ALLOWED_HOSTS=okc2.pythonanywhere.com`, and Google credentials in private environment configuration.
 5. Ensure the existing PythonAnywhere WSGI file adds this checkout to `sys.path` and sets `DJANGO_SETTINGS_MODULE=claimsense_project.settings.production` before importing Django's WSGI application. Retain existing host-specific paths.
 6. Run `python manage.py migrate --settings=claimsense_project.settings.production`, then `python manage.py collectstatic --noinput --settings=claimsense_project.settings.production`. Map `/static/` to this checkout's `staticfiles/` directory in the Web tab. Reload the existing web app.
 7. Test in a fresh anonymous browser: home has no patient data; bills redirect; `/api/bills/` returns 401; only `/api/public/plan-types/` returns public JSON.
 8. Test internal signup/login/logout, regular-account navigation and empty results, linked-patient access and cross-patient isolation, and staff-only management. Test Google login and logout on the actual production URL.
 9. Generate the external-editor submission spec:
-   `python docs/a5/build_vega_spec.py https://ACTUAL-DOMAIN.pythonanywhere.com`
+   `python docs/a5/build_vega_spec.py https://okc2.pythonanywhere.com`
    This creates `docs/a5/production_plan_types.txt`. Paste the JSON into the Vega Editor, verify it fetches production data, and save the chart screenshot. Do not submit the relative-URL spec to an external editor.
 10. Record production date/time, deployed commit SHA, actual URLs, actual outcomes and screenshots in `evidence.md`. A failed check remains failed until retested.
 

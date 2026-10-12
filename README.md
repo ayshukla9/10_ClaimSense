@@ -118,11 +118,11 @@ Then in the Web tab:
 - Static files: `/static/` -> `/home/<username>/10_ClaimSense/staticfiles`
 - WSGI file: add the project folder to `sys.path` and set `DJANGO_SETTINGS_MODULE` to `claimsense_project.settings.production`
 
-`db.sqlite3` is in the repo so there is no need to migrate. Production settings accept any `*.pythonanywhere.com` host unless `ALLOWED_HOSTS` is set in `.env`.
+Run migrations for each deployment, including the A5 patient ownership migration. Preserve and back up the live database; do not replace it with the repository database. Production settings accept any `*.pythonanywhere.com` host unless `ALLOWED_HOSTS` is set in `.env`.
 
 
 ## P1-A5.1: authentication and public API
 
 Custom signup/login/logout is served at `/accounts/`. Google OAuth uses django-allauth and private environment credentials. All authenticated accounts can use ordinary pages and protected APIs. Patient records are scoped to an explicit `Patient.user` link assigned by staff; unlinked accounts see empty results. Staff retain full record access and exclusive access to Manage. Navigation and all existing record routes are protected. The one public JSON API is `GET /api/public/plan-types/`, a database count of catalogue plans by type with no patient or bill information.
 
-See [A5 setup and deployment](docs/a5/README.md), [290-second team demo](docs/a5/demo.md), and [evidence register](docs/a5/evidence.md). The public Vega-Lite `.txt` spec is `static/vega-lite/plan_types.txt`; generate an absolute production URL version with `docs/a5/build_vega_spec.py` once the real domain is known. Production deployment, real OAuth, screenshots and video require actual access and evidence.
+See [A5 setup and deployment](docs/a5/README.md), [290-second team demo](docs/a5/demo.md), and [evidence register](docs/a5/evidence.md). The live website is https://okc2.pythonanywhere.com/ and the public API is https://okc2.pythonanywhere.com/api/public/plan-types/. A5 was merged into `main` and deployed on October 12, 2026; the team completed real Google signup/login and captured production Vega-Lite and three API-consumer demonstrations. The server-generated `docs/a5/production_plan_types.txt` uses the absolute production API URL and is the external-editor submission source; `static/vega-lite/plan_types.txt` is the relative-URL hosted version. The video and submission packaging remain unfinished. Google publishing and a fresh availability check remain follow-ups; see the evidence register for precise verification limits.
