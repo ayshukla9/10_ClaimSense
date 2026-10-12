@@ -152,3 +152,33 @@ class A5Tests(TestCase):
         self.assertIn('http%3A%2F%2Ftestserver%2Faccounts%2Fgoogle%2Flogin%2Fcallback%2F',response['Location'])
         self.assertIn('state=',response['Location'])
         # This tests initiation only, never a real Google authorization/callback.
+
+
+class DemoCatalogueTests(TestCase):
+    def test_repeatable_seed_populates_public_chart_without_patient_data(self):
+        from io import StringIO
+        from django.core.management import call_command
+        original = InsurancePlan.objects.create(name='Existing PPO', plan_type='PPO', deductible=123, coinsurance_pct=20, out_of_pocket_max=1000)
+        for _ in range(2):
+            call_command('seed_demo_catalogue', stdout=StringIO())
+        self.assertEqual(InsurancePlan.objects.count(), 7)
+        original.refresh_from_db()
+        self.assertEqual(original.deductible, 123)
+        self.assertEqual(Patient.objects.count(), 0)
+        self.assertEqual(Bill.objects.count(), 0)
+        response = self.client.get('/api/public/plan-types/')
+        self.assertEqual(response.json(), [
+            {'plan_type': 'EPO', 'plan_count': 2},
+            {'plan_type': 'HMO', 'plan_count': 3},
+            {'plan_type': 'OTHER', 'plan_count': 1},
+            {'plan_type': 'PPO', 'plan_count': 1},
+        ])
+        self.assertNotContains(response, 'Synthetic')
+
+    def test_conflicting_seed_name_rolls_back_without_overwriting(self):
+        from io import StringIO
+        from django.core.management import call_command, CommandError
+        InsurancePlan.objects.create(name='Synthetic A5 demo EPO 1', plan_type='PPO', deductible=123, coinsurance_pct=20, out_of_pocket_max=1000)
+        with self.assertRaises(CommandError):
+            call_command('seed_demo_catalogue', stdout=StringIO())
+        self.assertEqual(InsurancePlan.objects.count(), 1)

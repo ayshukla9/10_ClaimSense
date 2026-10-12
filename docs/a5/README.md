@@ -75,3 +75,15 @@ For each example preserve the code, screenshot filename, production URL, capture
 ## Patient ownership migration
 
 Apply migration `claims.0002_patient_user` before reloading the deployed app. Existing records remain unlinked and private to staff; this migration does not assign or expose records automatically. In Django admin, a staff administrator can edit a Patient and select the verified account in the new User field. Never assign ownership from a matching signup email alone. New password and Google accounts do not need staff status to navigate. For a populated grader/video experience, explicitly link a permitted synthetic demonstration patient to the demonstration account. Real records must only be linked to their verified owner.
+
+## Populate the public chart for the assignment
+
+On the deployed assignment database, after migrating, run:
+
+```sh
+python manage.py seed_demo_catalogue --settings=claimsense_project.settings.production
+```
+
+This explicit command adds six clearly labelled synthetic insurance plans (3 HMO, 2 EPO, 1 OTHER). It is safe to repeat, does not overwrite existing plans, and creates no accounts, patients or bills. An existing PPO plan gives the public chart four categories with counts 2, 3, 1 and the existing PPO count. The public API, chart specification and three consumers keep their existing URLs and response format. The chart reads the database; without running this command on the server its data will not change. Explain in the video/submission that the catalogue includes synthetic demonstration plans; do not describe the counts as real insurance-market statistics.
+
+For private-page demonstrations, use a dedicated regular account linked by staff to a verified synthetic patient. Keep credentials in the course's private submission notes; never publish them in GitHub. Do not give a grader staff credentials for a database containing real records. Demonstrate fresh signup/Google login with visible navigation first, then the linked demo account for populated bills and charts.
