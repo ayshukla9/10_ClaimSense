@@ -88,7 +88,7 @@ for one over another.
 
 ClaimSense now has a home page, a shared nav bar, and bill detail pages (`/bills/<pk>/`) linked through `Bill.get_absolute_url()`. Search (GET by provider, POST by patient email), a summary page with ORM aggregations, and a Matplotlib chart at `/charts/bills-per-provider.png` are live. Styling comes from `static/css/style.css`.
 
-**API:** `GET /api/bills/` returns JSON (`JsonResponse`). Optional query params: `provider` (name contains), `plan` (plan name contains), `since` (`YYYY-MM-DD`). `/api/bills/plain/` returns the same data via `HttpResponse` (text/html) for the MIME comparison, and `/api/bills/cbv/` is the class-based version. No patient data is exposed.
+**API:** `GET /api/bills/` returns JSON (`JsonResponse`). Optional query params: `provider` (name contains), `plan` (plan name contains), `since` (`YYYY-MM-DD`). `/api/bills/plain/` returns the same data via `HttpResponse` (text/html) for the MIME comparison, and `/api/bills/cbv/` is the class-based version. These historical bill endpoints are now private; bill references are not public data.
 
 **UI note:** custom CSS (navy/gold palette, serif headings, styled header, nav bar and tables) replaces the old inline `<style>` block.
 
@@ -119,3 +119,10 @@ Then in the Web tab:
 - WSGI file: add the project folder to `sys.path` and set `DJANGO_SETTINGS_MODULE` to `claimsense_project.settings.production`
 
 `db.sqlite3` is in the repo so there is no need to migrate. Production settings accept any `*.pythonanywhere.com` host unless `ALLOWED_HOSTS` is set in `.env`.
+
+
+## P1-A5.1: authentication and public API
+
+Custom signup/login/logout is served at `/accounts/`. Google OAuth uses django-allauth and private environment credentials. All authenticated accounts can use ordinary pages and protected APIs. Patient records are scoped to an explicit `Patient.user` link assigned by staff; unlinked accounts see empty results. Staff retain full record access and exclusive access to Manage. Navigation and all existing record routes are protected. The one public JSON API is `GET /api/public/plan-types/`, a database count of catalogue plans by type with no patient or bill information.
+
+See [A5 setup and deployment](docs/a5/README.md), [290-second team demo](docs/a5/demo.md), and [evidence register](docs/a5/evidence.md). The public Vega-Lite `.txt` spec is `static/vega-lite/plan_types.txt`; generate an absolute production URL version with `docs/a5/build_vega_spec.py` once the real domain is known. Production deployment, real OAuth, screenshots and video require actual access and evidence.

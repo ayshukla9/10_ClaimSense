@@ -1,4 +1,5 @@
 from django.urls import path
+from .access import private_view
 
 from . import (
     views,
@@ -43,3 +44,10 @@ urlpatterns = [
     path("api/summary/bills/", views_api.api_summary_bills, name="api-summary-bills"),
     path("api/procedures/", views_external.api_procedures, name="api-procedures"),
 ]
+
+# Protect every existing records route, including exports and chart images.
+# New routes are private by default. Exactly one public JSON API is appended.
+for route in urlpatterns:
+    if route.name != "home":
+        route.callback = private_view(route.callback, staff_only=route.name == "bill-manage", api=str(route.pattern).startswith("api/") or route.name == "export-bills-json")
+urlpatterns += [path("api/public/plan-types/", views_api.public_plan_types, name="public-plan-types")]

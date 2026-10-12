@@ -1,12 +1,16 @@
 {% extends "base.html" %}
-{% block title %}Home -- ClaimSense{% endblock %}
+{% block title %}Home — ClaimSense{% endblock %}
 {% block content %}
 <h2>Know what your insurance is actually worth</h2>
 <p>ClaimSense reconciles hospital bills against plan rules, one line item at a time.</p>
+{% if user.is_authenticated %}
 <div class="card"><strong>{{ total_bills }}</strong> bills tracked.
-    <a href="{% url 'claims:bill-list-render' %}">View all</a> |
-    <a href="{% url 'claims:bill-summary' %}">Summary</a> |
-    <a href="{% url 'claims:charts' %}">Charts</a></div>
+<a href="{% url 'claims:bill-list-render' %}">View all</a></div>
+<p>Your account shows only records explicitly linked to you. If none are linked yet, contact the administrator.</p>
 <h3>Most recent bills</h3>
 {% include "claims/_bill_table.html" with bills=recent_bills %}
+{% else %}
+<p>Sign in to continue.</p>
+{% endif %}
+<p><a href="{% url 'claims:public-plan-types' %}">Public insurance plan catalogue API</a></p>
 {% endblock %}

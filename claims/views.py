@@ -15,6 +15,7 @@ from django.views import View
 from django.views.generic import DetailView, ListView, TemplateView
 
 from .models import Bill
+from .access import visible_bills
 
 
 def bill_list_manual(request):
@@ -27,7 +28,7 @@ def bill_list_manual(request):
     """
     template = loader.get_template("claims/bill_list.html")
     context = {
-        "bills": Bill.objects.all(),
+        "bills": visible_bills(request.user),
         "view_label": "View 1: HttpResponse (manual, loader.get_template)",
     }
     return HttpResponse(template.render(context, request))
@@ -40,7 +41,7 @@ def bill_list_render(request):
     Queries the model and passes the queryset into a context dict, then
     lets render() handle template loading + HttpResponse wrapping.
     """
-    bills = Bill.objects.all()
+    bills = visible_bills(request.user)
     context = {
         "bills": bills,
         "view_label": "View 2: render() shortcut",
@@ -57,7 +58,7 @@ class BillListBaseView(View):
     """
 
     def get(self, request):
-        bills = Bill.objects.all()
+        bills = visible_bills(request.user)
         context = {
             "bills": bills,
             "view_label": "View 3: Base CBV (django.views.View)",
@@ -77,6 +78,9 @@ class BillListView(ListView):
     model = Bill
     template_name = "claims/bill_list.html"
     context_object_name = "bills"
+    def get_queryset(self):
+        return visible_bills(self.request.user)
+
     extra_context = {"view_label": "View 4: Generic CBV (ListView)"}
 
 
@@ -86,15 +90,17 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx["recent_bills"] = Bill.objects.select_related("patient", "provider")[:5]
-        ctx["total_bills"] = Bill.objects.count()
+        if self.request.user.is_authenticated:
+            ctx["recent_bills"] = visible_bills(self.request.user).select_related("patient", "provider")[:5]
+            ctx["total_bills"] = visible_bills(self.request.user).count()
         return ctx
 
 
 class BillDetailView(DetailView):
     model = Bill
     template_name = "claims/bill_detail.html"
-    queryset = Bill.objects.select_related("patient", "provider", "insurance_plan")
+    def get_queryset(self):
+        return visible_bills(self.request.user).select_related("patient", "provider", "insurance_plan")
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

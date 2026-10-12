@@ -1,4 +1,4 @@
-"""Section 6: public JSON API (no patient PII exposed)."""
+"""Private bill APIs and one public plan catalogue aggregate."""
 import json
 
 from django.core.exceptions import ValidationError
@@ -6,11 +6,11 @@ from django.http import HttpResponse, JsonResponse
 from django.views import View
 
 from . import summaries
-from .models import Bill
+from .access import visible_bills
 
 
 def _serialize(request):
-    qs = Bill.objects.select_related("provider", "insurance_plan")
+    qs = visible_bills(request.user).select_related("provider", "insurance_plan")
     provider = request.GET.get("provider")
     plan = request.GET.get("plan")
     since = request.GET.get("since")  # YYYY-MM-DD
@@ -68,9 +68,25 @@ class BillAPIView(View):
 # ---- P1-A4 Part 1: summary endpoints for the Vega-Lite charts ----
 def api_summary_providers(request):
     """One row per provider. Plain list (safe=False) because Vega-Lite wants an array."""
-    return JsonResponse(summaries.provider_summary(), safe=False)
+    return JsonResponse(summaries.provider_summary(request.user), safe=False)
 
 
 def api_summary_bills(request):
     """One row per bill, oldest first."""
-    return JsonResponse(summaries.bill_summary(), safe=False)
+    return JsonResponse(summaries.bill_summary(request.user), safe=False)
+
+
+from django.db.models import Count
+from django.views.decorators.http import require_GET
+from .models import InsurancePlan
+
+
+@require_GET
+def public_plan_types(request):
+    """Public catalogue counts, with no patient/bill identifiers or amounts."""
+    rows = list(InsurancePlan.objects.order_by("plan_type")
+                .values("plan_type").annotate(plan_count=Count("pk")))
+    response = JsonResponse(rows, safe=False)
+    # Enables external browser consumers and the Vega Editor; this API is read-only.
+    response["Access-Control-Allow-Origin"] = "*"
+    return response

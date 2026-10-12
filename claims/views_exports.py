@@ -7,8 +7,7 @@ from django.utils import timezone
 
 from . import summaries
 
-# CSV columns. No patient name/email for now -- anyone can download this
-# until we add login in A5.
+# CSV columns; exports use the same ownership scope as pages and APIs.
 EXPORT_FIELDS = [
     "reference_number",
     "bill_date",
@@ -30,12 +29,12 @@ def export_bills_csv(request):
     response["Content-Disposition"] = f'attachment; filename="{_filename("csv")}"'
     writer = csv.DictWriter(response, fieldnames=EXPORT_FIELDS)
     writer.writeheader()
-    writer.writerows(summaries.bill_summary())
+    writer.writerows(summaries.bill_summary(request.user))
     return response
 
 
 def export_bills_json(request):
-    bills = summaries.bill_summary()
+    bills = summaries.bill_summary(request.user)
     payload = {
         "generated_at": timezone.now().isoformat(),
         "record_count": len(bills),
@@ -47,9 +46,9 @@ def export_bills_json(request):
 
 
 def reports(request):
-    bills = summaries.bill_summary()
+    bills = summaries.bill_summary(request.user)
     ctx = {
-        "per_provider": summaries.provider_summary(),
+        "per_provider": summaries.provider_summary(request.user),
         "per_network": summaries.network_summary(bills),
         "totals": summaries.totals(bills),
     }

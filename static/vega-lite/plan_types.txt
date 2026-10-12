@@ -1,0 +1,33 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Insurance plan catalogue by type",
+  "data": {
+    "url": "/api/public/plan-types/",
+    "format": {
+      "type": "json"
+    }
+  },
+  "mark": "bar",
+  "encoding": {
+    "x": {
+      "field": "plan_type",
+      "type": "nominal"
+    },
+    "y": {
+      "field": "plan_count",
+      "type": "quantitative",
+      "axis": {
+        "tickMinStep": 1
+      }
+    },
+    "tooltip": [
+      {
+        "field": "plan_type"
+      },
+      {
+        "field": "plan_count",
+        "type": "quantitative"
+      }
+    ]
+  }
+}

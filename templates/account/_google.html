@@ -1,0 +1,8 @@
+{% load socialaccount %}
+{% if google_oauth_enabled %}
+<form method="post" action="{% provider_login_url 'google' process='login' %}">{% csrf_token %}
+<button type="submit">Continue with Google</button></form>
+{% else %}
+<button type="button" disabled>Continue with Google</button>
+<p>Google login is awaiting administrator OAuth configuration.</p>
+{% endif %}

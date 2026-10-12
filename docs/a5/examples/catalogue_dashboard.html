@@ -1,0 +1,17 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Plan catalogue dashboard</title>
+<h1>Plan catalogue dashboard</h1>
+<label>Production origin <input id="origin" type="url" placeholder="https://your-site.pythonanywhere.com"></label>
+<button id="load">Load live counts</button><pre id="result" aria-live="polite"></pre>
+<script>
+document.querySelector('#load').onclick = async () => {
+  const output = document.querySelector('#result');
+  output.textContent = 'Loading…';
+  try {
+    const origin = new URL(document.querySelector('#origin').value).origin;
+    const response = await fetch(origin + '/api/public/plan-types/', {credentials:'omit'});
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    const rows = await response.json();
+    output.textContent = 'Source: ' + origin + '\n' + rows.map(r => r.plan_type + ': ' + r.plan_count + ' plans').join('\n');
+  } catch (error) { output.textContent = 'Could not load: ' + error.message; }
+};
+</script></html>

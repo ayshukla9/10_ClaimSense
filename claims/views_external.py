@@ -11,6 +11,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 
 from .models import BillLineItem
+from .access import visible_bills
 
 HCPCS_URL = "https://clinicaltables.nlm.nih.gov/api/hcpcs/v3/search"
 MAX_CODES = 10
@@ -46,9 +47,9 @@ def _fetch_hcpcs(term):
     return total, codes
 
 
-def _internal_stats(term):
+def _internal_stats(term, user):
     """Our side: line items whose description contains the term."""
-    items = BillLineItem.objects.filter(description__icontains=term).select_related("bill__provider")
+    items = BillLineItem.objects.filter(bill__in=visible_bills(user), description__icontains=term).select_related("bill__provider")
     stats = items.aggregate(
         n=Count("id"),
         total=Sum("charged_amount"),
@@ -81,11 +82,11 @@ def _internal_stats(term):
     }
 
 
-def _lookup(term):
+def _lookup(term, user):
     total, codes = _fetch_hcpcs(term)
     return {
         "query": term,
-        "claimsense": _internal_stats(term),
+        "claimsense": _internal_stats(term, user),
         "hcpcs": {
             "source": HCPCS_URL,
             "total_matches": total,
@@ -101,7 +102,7 @@ def api_procedures(request):
     if not term:
         return JsonResponse({"error": "Provide a search term, e.g. ?q=imaging"}, status=400)
     try:
-        return JsonResponse(_lookup(term))
+        return JsonResponse(_lookup(term, request.user))
     except ExternalAPIError as exc:
         return JsonResponse({"error": str(exc), "query": term}, status=exc.status)
 
@@ -112,7 +113,7 @@ def procedure_lookup(request):
     ctx = {"q": term, "result": None, "error": None}
     if term:
         try:
-            ctx["result"] = _lookup(term)
+            ctx["result"] = _lookup(term, request.user)
         except ExternalAPIError as exc:
             ctx["error"] = str(exc)
     return render(request, "claims/procedure_lookup.html", ctx)
