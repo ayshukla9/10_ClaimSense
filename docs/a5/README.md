@@ -8,9 +8,9 @@ The available assignment preview ends at the beginning of Part 3; check the comp
 - Custom allauth username/password signup, login and POST/CSRF-protected logout templates.
 - Login URL and redirect settings; password validation; Google provider and environment-only credentials.
 - Protected navigation, every existing patient page, exports, chart image and API route.
-- Anonymous pages redirect to login; anonymous private APIs return JSON HTTP 401. Signed-in nonstaff accounts receive 403. Administrators approve team access by setting `is_staff`; public signup never grants patient access. Approved operators can see all existing project records. This is a team demo/operator model, not patient-specific ownership authorization.
+- Anonymous pages redirect to login; anonymous private APIs return JSON HTTP 401. All signed-in accounts can open ordinary pages and private APIs. Nonstaff accounts see only bills belonging to their explicitly linked `Patient.user`; unlinked accounts see empty results, and other patient detail URLs return 404. Staff retain full record access. Manage and Django admin remain staff-only. Never grant staff status merely to enable ordinary navigation.
 - Exactly one unauthenticated JSON API: `GET /api/public/plan-types/`. It counts `InsurancePlan` rows grouped by `plan_type`, returning an array of `{plan_type, plan_count}`. It does not disclose patient details, bill references, plan names or amounts. An empty database returns `[]`; POST returns 405. Wildcard CORS applies only to this public GET endpoint.
-- A5 Vega-Lite .txt spec at `static/vega-lite/plan_types.txt`, displayed on the protected Vega-Lite page. Its relative URL queries the current deployed origin when hosted there. Existing private chart APIs remain usable by approved signed-in operators.
+- A5 Vega-Lite .txt spec at `static/vega-lite/plan_types.txt`, displayed on the protected Vega-Lite page. Its relative URL queries the current deployed origin when hosted there. Existing private chart APIs remain usable by signed-in users within their record scope.
 - Three runnable alternative API consumers in `examples/` and a 290-second production demo script.
 
 ## Blocked; do not claim completed
@@ -29,7 +29,7 @@ python manage.py runserver
 ```
 
 Tests use an isolated test database and synthetic data. Do not commit a migrated production/local database.
-Tests exercise signup, password login/logout, CSRF, unsafe redirect rejection, every private route for anonymous and unapproved accounts, staff access, public database counts, MIME/CORS/method checks, invalid dates, and Google redirect initiation with test-only credentials. Initiation does not establish a successful Google login.
+Tests exercise signup, password login/logout, CSRF, unsafe redirect rejection, every private route for anonymous and regular accounts, including ownership isolation across pages, exports and aggregates, staff access, public database counts, MIME/CORS/method checks, invalid dates, and Google redirect initiation with test-only credentials. Initiation does not establish a successful Google login.
 
 ## Google OAuth setup (both environments)
 
@@ -41,7 +41,7 @@ Tests exercise signup, password login/logout, CSRF, unsafe redirect rejection, e
 3. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in the local and server environment or private `.env`. Never commit them, show them in screenshots or paste them into the video.
 4. The configuration uses provider `APPS`; do not create a second Google SocialApp in Django admin. No Sites framework setup is necessary with this approach.
 5. Run migrations and reload the server. Both custom pages then enable Continue with Google. Google authorization starts via POST with CSRF and allauth verifies OAuth state. Use the actual domain's HTTPS URL; production settings trust PythonAnywhere's forwarded HTTPS header.
-6. Complete real Google authorization in localhost and production. A new Google account is nonstaff; an administrator must approve it before patient data access. Do not enable automatic email-based account linking.
+6. Complete real Google authorization in localhost and production. A new Google account can immediately use ordinary pages and APIs, with the same record scope as password accounts. Do not enable automatic email-based account linking.
 
 References: [allauth quickstart](https://docs.allauth.org/en/latest/installation/quickstart.html), [Google provider configuration](https://docs.allauth.org/en/latest/socialaccount/providers/google.html).
 
@@ -56,7 +56,7 @@ After review/merge of the feature branch into main:
 5. Ensure the existing PythonAnywhere WSGI file adds this checkout to `sys.path` and sets `DJANGO_SETTINGS_MODULE=claimsense_project.settings.production` before importing Django's WSGI application. Retain existing host-specific paths.
 6. Run `python manage.py migrate --settings=claimsense_project.settings.production`, then `python manage.py collectstatic --noinput --settings=claimsense_project.settings.production`. Map `/static/` to this checkout's `staticfiles/` directory in the Web tab. Reload the existing web app.
 7. Test in a fresh anonymous browser: home has no patient data; bills redirect; `/api/bills/` returns 401; only `/api/public/plan-types/` returns public JSON.
-8. Test internal signup/login/logout, unapproved-account 403, approved staff navigation and bills. Test Google login and logout on the actual production URL.
+8. Test internal signup/login/logout, regular-account navigation and empty results, linked-patient access and cross-patient isolation, and staff-only management. Test Google login and logout on the actual production URL.
 9. Generate the external-editor submission spec:
    `python docs/a5/build_vega_spec.py https://ACTUAL-DOMAIN.pythonanywhere.com`
    This creates `docs/a5/production_plan_types.txt`. Paste the JSON into the Vega Editor, verify it fetches production data, and save the chart screenshot. Do not submit the relative-URL spec to an external editor.
@@ -71,3 +71,7 @@ Set `ORIGIN` to the actual production origin. All consumers use the same single 
 3. **Automated catalogue health check:** `python docs/a5/examples/catalogue_monitor.py "$ORIGIN"`. Screenshot the terminal command, production source URL and PASS/FAIL result. Explain empty catalogue detection and exit status for automation. A network failure is not a passing health check.
 
 For each example preserve the code, screenshot filename, production URL, capture time and interpretation in `evidence.md`. Compare row counts against the production API. Never present test fixture results as production evidence.
+
+## Patient ownership migration
+
+Apply migration `claims.0002_patient_user` before reloading the deployed app. Existing records remain unlinked and private to staff; this migration does not assign or expose records automatically. In Django admin, a staff administrator can edit a Patient and select the verified account in the new User field. Never assign ownership from a matching signup email alone. New password and Google accounts do not need staff status to navigate. For a populated grader/video experience, explicitly link a permitted synthetic demonstration patient to the demonstration account. Real records must only be linked to their verified owner.

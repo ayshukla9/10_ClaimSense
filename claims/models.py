@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.urls import reverse
 
@@ -34,6 +35,11 @@ class Patient(models.Model):
     Each patient is linked to one active insurance plan.
     """
 
+    # Assigned by staff; never infer ownership from an unverified email address.
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="patient_record",
+    )
     name = models.CharField(max_length=100)
     netid = models.CharField(max_length=20, unique=True)
     email = models.EmailField(unique=True)

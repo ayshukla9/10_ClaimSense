@@ -14,7 +14,7 @@
     </header>
     <nav>
         <a href="{% url 'claims:home' %}">Home</a>
-        {% if user.is_authenticated and user.is_staff %}
+        {% if user.is_authenticated %}
         <a href="{% url 'claims:bill-list-render' %}">All Bills</a>
         <a href="{% url 'claims:bill-search' %}">Search</a>
         <a href="{% url 'claims:bill-lookup' %}">Lookup</a>
@@ -23,7 +23,7 @@
         <a href="{% url 'claims:charts' %}">Charts</a>
         <a href="{% url 'claims:vega-charts' %}">Vega-Lite</a>
         <a href="{% url 'claims:procedure-lookup' %}">Procedures</a>
-        <a href="{% url 'claims:bill-manage' %}">Manage</a>
+        {% if user.is_staff %}<a href="{% url 'claims:bill-manage' %}">Manage</a>{% endif %}
         <a href="{% url 'claims:api-bills' %}">API</a>
         {% endif %}
         {% if user.is_authenticated %}

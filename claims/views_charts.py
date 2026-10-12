@@ -5,11 +5,11 @@ import matplotlib
 
 matplotlib.use("Agg")  # headless backend, required on servers
 import matplotlib.pyplot as plt
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from .models import Provider
+from .access import visible_providers, visible_bills
 
 
 def charts_page(request):
@@ -17,7 +17,7 @@ def charts_page(request):
 
 
 def bills_per_provider_png(request):
-    data = list(Provider.objects.annotate(n=Count("bills")).values_list("name", "n"))
+    data = list(visible_providers(request.user).annotate(n=Count("bills", filter=Q(bills__in=visible_bills(request.user)))).values_list("name", "n"))
     fig, ax = plt.subplots(figsize=(7, 4))
     if data:
         labels, counts = zip(*data)

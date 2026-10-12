@@ -49,5 +49,5 @@ urlpatterns = [
 # New routes are private by default. Exactly one public JSON API is appended.
 for route in urlpatterns:
     if route.name != "home":
-        route.callback = private_view(route.callback, api=str(route.pattern).startswith("api/") or route.name == "export-bills-json")
+        route.callback = private_view(route.callback, staff_only=route.name == "bill-manage", api=str(route.pattern).startswith("api/") or route.name == "export-bills-json")
 urlpatterns += [path("api/public/plan-types/", views_api.public_plan_types, name="public-plan-types")]

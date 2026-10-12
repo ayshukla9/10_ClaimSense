@@ -33,6 +33,6 @@ def vega_chart_png(request, name):
         raise Http404("Unknown chart")
     spec_file, rows = CHARTS[name]
     spec = json.loads((SPEC_DIR / spec_file).read_text(encoding="utf-8"))
-    spec["data"] = {"values": rows()}
+    spec["data"] = {"values": rows(request.user)}
     png = vlc.vegalite_to_png(json.dumps(spec), scale=2)
     return HttpResponse(png, content_type="image/png")

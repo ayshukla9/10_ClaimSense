@@ -1,26 +1,27 @@
 """P1-A4: totals per provider / per bill. Used by the API, the charts, the reports page and exports."""
-from django.db.models import Count, DecimalField, Sum
+from django.db.models import Count, DecimalField, Sum, Q
 from django.db.models.functions import Coalesce
 
-from .models import Bill, Provider
+from .access import visible_bills, visible_providers
 
 AMOUNT_KEYS = ("total_charged", "total_covered", "patient_responsibility")
 
 
-def _money(prefix=""):
+def _money(prefix="", *, condition=None):
     # the three Sum()s we need everywhere; Coalesce so a bill with no line items gives 0, not None
     path = f"{prefix}line_items__"
     fields = ("charged_amount", "estimated_covered_amount", "estimated_patient_responsibility")
     return {
-        key: Coalesce(Sum(path + field), 0, output_field=DecimalField())
+        key: Coalesce(Sum(path + field, filter=condition), 0, output_field=DecimalField())
         for key, field in zip(AMOUNT_KEYS, fields)
     }
 
 
-def provider_summary():
+def provider_summary(user):
     """One row per provider."""
-    qs = Provider.objects.annotate(
-        bill_count=Count("bills", distinct=True), **_money("bills__")
+    qs = visible_providers(user).annotate(
+        bill_count=Count("bills", distinct=True, filter=Q(bills__in=visible_bills(user))),
+        **_money("bills__", condition=Q(bills__in=visible_bills(user)))
     ).order_by("name")
     return [
         {
@@ -35,10 +36,10 @@ def provider_summary():
     ]
 
 
-def bill_summary():
+def bill_summary(user):
     """One row per bill, oldest first (for the line chart)."""
     qs = (
-        Bill.objects.select_related("provider", "insurance_plan")
+        visible_bills(user).select_related("provider", "insurance_plan")
         .annotate(**_money())
         .order_by("bill_date", "reference_number")
     )

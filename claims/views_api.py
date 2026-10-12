@@ -6,11 +6,11 @@ from django.http import HttpResponse, JsonResponse
 from django.views import View
 
 from . import summaries
-from .models import Bill
+from .access import visible_bills
 
 
 def _serialize(request):
-    qs = Bill.objects.select_related("provider", "insurance_plan")
+    qs = visible_bills(request.user).select_related("provider", "insurance_plan")
     provider = request.GET.get("provider")
     plan = request.GET.get("plan")
     since = request.GET.get("since")  # YYYY-MM-DD
@@ -68,12 +68,12 @@ class BillAPIView(View):
 # ---- P1-A4 Part 1: summary endpoints for the Vega-Lite charts ----
 def api_summary_providers(request):
     """One row per provider. Plain list (safe=False) because Vega-Lite wants an array."""
-    return JsonResponse(summaries.provider_summary(), safe=False)
+    return JsonResponse(summaries.provider_summary(request.user), safe=False)
 
 
 def api_summary_bills(request):
     """One row per bill, oldest first."""
-    return JsonResponse(summaries.bill_summary(), safe=False)
+    return JsonResponse(summaries.bill_summary(request.user), safe=False)
 
 
 from django.db.models import Count

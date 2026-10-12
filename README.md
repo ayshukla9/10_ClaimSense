@@ -123,6 +123,6 @@ Then in the Web tab:
 
 ## P1-A5.1: authentication and public API
 
-Custom signup/login/logout is served at `/accounts/`. Google OAuth uses django-allauth and private environment credentials. New accounts need administrator staff approval to access patient records; existing staff accounts retain access. Navigation and all existing record routes are protected. The one public JSON API is `GET /api/public/plan-types/`, a database count of catalogue plans by type with no patient or bill information.
+Custom signup/login/logout is served at `/accounts/`. Google OAuth uses django-allauth and private environment credentials. All authenticated accounts can use ordinary pages and protected APIs. Patient records are scoped to an explicit `Patient.user` link assigned by staff; unlinked accounts see empty results. Staff retain full record access and exclusive access to Manage. Navigation and all existing record routes are protected. The one public JSON API is `GET /api/public/plan-types/`, a database count of catalogue plans by type with no patient or bill information.
 
 See [A5 setup and deployment](docs/a5/README.md), [290-second team demo](docs/a5/demo.md), and [evidence register](docs/a5/evidence.md). The public Vega-Lite `.txt` spec is `static/vega-lite/plan_types.txt`; generate an absolute production URL version with `docs/a5/build_vega_spec.py` once the real domain is known. Production deployment, real OAuth, screenshots and video require actual access and evidence.
