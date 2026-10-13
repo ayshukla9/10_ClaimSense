@@ -182,3 +182,47 @@ class DemoCatalogueTests(TestCase):
         with self.assertRaises(CommandError):
             call_command('seed_demo_catalogue', stdout=StringIO())
         self.assertEqual(InsurancePlan.objects.count(), 1)
+
+
+class DemoDataTests(TestCase):
+    def seed(self, *args):
+        from io import StringIO
+        from django.core.management import call_command
+        call_command('seed_demo_data', *args, stdout=StringIO())
+
+    def test_repeatable_seed_preserves_existing_records(self):
+        plan = InsurancePlan.objects.create(name='IlliniCare Student PPO', plan_type='PPO', deductible=1500, coinsurance_pct=20, out_of_pocket_max=6000)
+        emma = Patient.objects.create(name='Emma Carter', netid='ecarter1', email='emma@example.com', insurance_plan=plan)
+        clinic = Provider.objects.create(name='Campus Health Center', insurance_plan=plan, network_status='IN')
+        Bill.objects.create(reference_number='CLM-1001', patient=emma, provider=clinic, insurance_plan=plan, bill_date=date(2026,1,15))
+        for _ in range(2):
+            self.seed()
+        self.assertEqual(Patient.objects.count(), 5)
+        self.assertEqual(InsurancePlan.objects.count(), 5)
+        self.assertEqual(Provider.objects.count(), 15)
+        self.assertEqual(Bill.objects.count(), 41)
+        self.assertEqual(Bill.objects.filter(line_items__isnull=True).count(), 1)
+        emma.refresh_from_db()
+        self.assertEqual((emma.email, emma.insurance_plan, emma.user), ('emma@example.com', plan, None))
+        for item in BillLineItem.objects.all():
+            self.assertEqual(item.estimated_covered_amount + item.estimated_patient_responsibility, item.charged_amount)
+        self.assertFalse(Bill.objects.filter(bill_date__gt=date(2026,9,28)).exists())
+
+    def test_accounts_see_only_their_own_demo_bills(self):
+        from django.core.management import CommandError
+        with self.assertRaises(CommandError):
+            self.seed('--accounts')
+        self.assertEqual(Patient.objects.count(), 0)
+        google = get_user_model().objects.create_user('google-demo', password='Member-Password-490')
+        for _ in range(2):
+            self.seed('--accounts', '--password', 'Demo-Password-490', '--link', 'google-demo=npatel4')
+        self.assertEqual(get_user_model().objects.count(), 5)
+        self.assertEqual(Patient.objects.get(netid='npatel4').user, google)
+        self.assertFalse(get_user_model().objects.filter(username='npatel4').exists())
+        self.assertTrue(self.client.login(username='lnguyen2', password='Demo-Password-490'))
+        rows = self.client.get('/api/summary/bills/').json()
+        self.assertEqual(len(rows), 8)
+        self.assertEqual({row['plan'] for row in rows}, {'Prairie Health HMO'})
+        with self.assertRaises(CommandError):
+            self.seed('--link', 'google-demo=ecarter1')
+        self.assertEqual(Patient.objects.get(netid='ecarter1').user.username, 'ecarter1')
