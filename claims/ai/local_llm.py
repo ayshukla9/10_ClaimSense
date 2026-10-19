@@ -49,6 +49,14 @@ def _generate(messages):
     return out[0]["generated_text"]
 
 
+def rules_only(item):
+    """Fallback when no local model can run (e.g. PythonAnywhere without torch): the
+    deterministic checks still flag the item, and appeal letters still work."""
+    issues = guardrails.rule_checks(item)
+    return {"category": "Not classified", "explanation": "", "flag": "review" if issues else "ok",
+            "source": "rules", "issues": issues}
+
+
 def explain_line_item(item):
     """Return {"category", "explanation", "flag", "source", "issues"} for one BillLineItem.
 

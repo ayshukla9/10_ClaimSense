@@ -24,8 +24,12 @@ def _bill(request, pk):
 
 
 def _explanations(bill):
+    """Returns (rows, notice). Without a local model the rule checks still run, and notice says why."""
     items = list(bill.line_items.select_related("bill__provider")[:MAX_ITEMS])
-    return [(item, local_llm.explain_line_item(item)) for item in items]
+    try:
+        return [(item, local_llm.explain_line_item(item)) for item in items], ""
+    except local_llm.LocalModelUnavailable as exc:
+        return [(item, local_llm.rules_only(item)) for item in items], str(exc)
 
 
 @require_http_methods(["GET", "POST"])
@@ -35,10 +39,7 @@ def bill_explain(request, pk):
     ctx = {"bill": bill, "model_name": settings.LOCAL_LLM_MODEL, "max_items": MAX_ITEMS,
            "gemini_ready": bool(settings.GEMINI_API_KEY)}
     if request.method == "POST":
-        try:
-            ctx["rows"] = _explanations(bill)
-        except local_llm.LocalModelUnavailable as exc:
-            ctx["error"] = str(exc)
+        ctx["rows"], ctx["notice"] = _explanations(bill)
     return render(request, "claims/bill_explain.html", ctx)
 
 
@@ -61,7 +62,7 @@ def bill_appeal(request, pk):
         note = guardrails.check_note(request.POST.get("note", ""))
         if not chosen:  # checked before the model runs, so an empty form costs no CPU
             raise guardrails.UnsafeInput("Pick at least one line item to appeal.")
-        rows = _explanations(bill)
+        rows, _ = _explanations(bill)  # works with or without the local model
         flagged = [(item, info) for item, info in rows if str(item.pk) in chosen]
         if not flagged:
             raise guardrails.UnsafeInput("Pick at least one line item to appeal.")
@@ -73,7 +74,7 @@ def bill_appeal(request, pk):
             ctx["letter"] = gemini_client.draft_appeal(bill, flagged, note)
     except guardrails.UnsafeInput as exc:
         ctx["error"], status = str(exc), 400
-    except (local_llm.LocalModelUnavailable, gemini_client.GeminiUnavailable) as exc:
+    except gemini_client.GeminiUnavailable as exc:
         ctx["error"], status = str(exc), 503
     except Exception:  # network errors, quota, API changes: never a 500 page
         log.exception("Gemini appeal failed for bill %s", bill.pk)

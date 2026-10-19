@@ -81,7 +81,7 @@ The reflection on size, cost and scaling is in [`docs/notes/notes.txt`](docs/not
 | Model writes prose, partial JSON or extra keys | `parse_explanation` extracts the first JSON object and validates keys and values. Near-miss categories are snapped to the allowed list (`"imaging"` → `Imaging`). Anything unusable becomes a safe fallback ("could not produce a reliable explanation", flag `review`) instead of an error |
 | Model says `ok` when a charge is clearly a problem | `rule_checks` (out of network, patient pays ≥ 50%, amounts don't add up) always win. A model "ok" can never hide a real issue |
 | Runaway generation | Greedy decoding that stops at the first `}` (end of the JSON object), `max_new_tokens=100`, at most 10 items per request |
-| Local model unavailable (torch missing, `LOCAL_LLM_ENABLED=0`) | Friendly message on the page, no 500 |
+| Local model unavailable (torch missing, `LOCAL_LLM_ENABLED=0`) | The page says why, still lists every line item with the rule-check flags (out of network, patient pays ≥ 50%, amounts don't add up), and appeal letters still work. No 500 |
 | Gemini down, quota exceeded, safety-blocked or empty reply | Caught: 503 / 502 page with a retry message, logged server-side. Empty or blocked replies are detected |
 | Markdown or odd characters in the letter | `clean_letter` strips markdown and control characters and caps the length. The template auto-escapes everything (no `|safe`) |
 | Repeated cost | Explanations are cached per line item + model + content hash for 24 h, so reopening a bill is instant |
@@ -116,5 +116,8 @@ downloads the model. After that, each line item takes a few seconds on a laptop 
 
 Tests (the model and API are mocked, so they run offline in seconds): `python manage.py test claims`.
 
-**Deployment note:** PythonAnywhere's free tier cannot install torch (disk quota). Set `LOCAL_LLM_ENABLED=0` there.
-The explainer then shows a clear "turned off on this server" message, and the rest of the site is unaffected.
+**Deployment note:** PythonAnywhere's free tier cannot install torch (disk quota). On the server, install
+`requirements-web.txt` instead of `requirements.txt` (same packages minus torch, transformers and the notebook tools)
+and set `LOCAL_LLM_ENABLED=0`. Line items then show the automatic rule checks instead of AI explanations, and Gemini
+appeal letters keep working with `GEMINI_API_KEY` set. Even if the variable is forgotten, a missing torch triggers the
+same fallback.

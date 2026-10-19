@@ -38,7 +38,8 @@ gitignored and must never be committed.
 ```
 ClaimSense/
 ├── README.md
-├── requirements.txt
+├── requirements.txt          # full install, incl. torch for the local AI model
+├── requirements-web.txt      # server install without torch (PythonAnywhere)
 ├── .env.example              # safe to commit; copy to .env locally
 ├── manage.py
 ├── docs/
@@ -108,8 +109,9 @@ ClaimSense now has a home page, a shared nav bar, and bill detail pages (`/bills
 git clone https://github.com/ayshukla9/10_ClaimSense.git
 cd 10_ClaimSense
 mkvirtualenv myenv-django --python=python3.12
-pip install -r requirements.txt
+pip install -r requirements-web.txt   # A6+: not requirements.txt -- torch does not fit the free disk
 echo "SECRET_KEY=<your key>" > .env
+echo "LOCAL_LLM_ENABLED=0" >> .env     # plus GEMINI_API_KEY=... for appeal letters
 python manage.py collectstatic --noinput --settings=claimsense_project.settings.production
 ```
 

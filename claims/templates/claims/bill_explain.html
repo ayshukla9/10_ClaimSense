@@ -12,9 +12,11 @@
     <a href="{{ bill.get_absolute_url }}">Back to bill</a>
 </form>
 
-{% if error %}
-<div class="empty-state"><strong>{{ error }}</strong></div>
-{% elif rows %}
+{% if notice %}
+<div class="card ai-notice"><strong>AI explanations are off on this server.</strong> {{ notice }}
+    The automatic checks below still run, and appeal letters still work.</div>
+{% endif %}
+{% if rows %}
 <form method="post" action="{% url 'claims:bill-appeal' bill.pk %}">
     {% csrf_token %}
     <table>
@@ -26,7 +28,7 @@
             <td>{{ item.line_number }}</td>
             <td>{{ item.description }}<br><small>${{ item.charged_amount }} charged, you owe ${{ item.estimated_patient_responsibility }}</small></td>
             <td>{{ info.category }}</td>
-            <td>{{ info.explanation }}
+            <td>{% if info.source == "rules" %}<em>No AI explanation (local model off).</em>{% else %}{{ info.explanation }}{% endif %}
                 {% for issue in info.issues %}<br><small class="ai-issue">&#9888; {{ issue }}</small>{% endfor %}
                 {% if info.source == "fallback" %}<br><small>(model output failed validation; shown the safe fallback)</small>{% endif %}
             </td>

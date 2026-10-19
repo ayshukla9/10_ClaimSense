@@ -290,10 +290,23 @@ class A6AITests(TestCase):
             response = self.client.post(f'/bills/{self.bill.pk}/explain/')
         self.assertContains(response, 'could not produce a reliable explanation')
 
-    def test_model_unavailable_is_reported(self):
+    def test_model_unavailable_falls_back_to_rule_checks(self):
+        # e.g. PythonAnywhere without torch: the page still lists items with the deterministic checks.
         with self.settings(LOCAL_LLM_ENABLED=False):
             response = self.client.post(f'/bills/{self.bill.pk}/explain/')
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'LOCAL_LLM_ENABLED=0')
+        self.assertContains(response, 'No AI explanation (local model off).')
+        self.assertContains(response, 'Provider is out of network.')
+        self.assertContains(response, 'ai-flag-review')
+
+    def test_appeal_still_works_without_local_model(self):
+        with self.settings(LOCAL_LLM_ENABLED=False), \
+                patch('claims.ai.gemini_client.draft_appeal', return_value='Dear insurer, please review.') as draft:
+            response = self.client.post(f'/bills/{self.bill.pk}/appeal/', {'items': [self.item.pk]})
+        self.assertContains(response, 'Dear insurer, please review.')
+        flagged = draft.call_args[0][1]
+        self.assertEqual(flagged[0][1]['issues'], ['Patient pays half or more of this charge.', 'Provider is out of network.'])
 
     def test_other_patients_bill_is_hidden(self):
         self.assertEqual(self.client.post(f'/bills/{self.other_bill.pk}/explain/').status_code, 404)
