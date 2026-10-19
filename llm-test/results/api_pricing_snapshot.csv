@@ -1,0 +1,6 @@
+model,hf_weights,provider,usd_per_1M_in,usd_per_1M_out
+groq:qwen/qwen3.8-27b,Qwen/Qwen3.8-27B,cerebras,0.99,1.49
+gemini:gemma-4-31b-it,google/gemma-4-31B-it,deepinfra,0.2,0.4
+gemini:gemma-4-26b-a4b-it,google/gemma-4-26B-A4B-it,deepinfra,0.07,0.33999999999999997
+groq:openai/gpt-oss-120b,openai/gpt-oss-120b,deepinfra,0.037,0.16999999999999998
+groq:openai/gpt-oss-20b,openai/gpt-oss-20b,deepinfra,0.030000000000000002,0.14

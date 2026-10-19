@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Explain bill {{ bill.reference_number }} -- ClaimSense{% endblock %}
+{% block content %}
+<h2>AI explanation: bill {{ bill.reference_number }}</h2>
+<p>A local Hugging Face model (<code>{{ model_name }}</code>) running on this server explains each charge in plain
+    English and flags charges worth a second look. Rule checks (network status, patient share, totals) always
+    run alongside it. The first run downloads the model and can take a minute on a CPU.</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">{% if rows %}Run again{% else %}Explain this bill{% endif %}</button>
+    <a href="{{ bill.get_absolute_url }}">Back to bill</a>
+</form>
+
+{% if error %}
+<div class="empty-state"><strong>{{ error }}</strong></div>
+{% elif rows %}
+<form method="post" action="{% url 'claims:bill-appeal' bill.pk %}">
+    {% csrf_token %}
+    <table>
+        <thead><tr><th>Appeal?</th><th>#</th><th>Charge</th><th>Category</th><th>Plain-English explanation</th><th>Flag</th></tr></thead>
+        <tbody>
+        {% for item, info in rows %}
+        <tr>
+            <td><input type="checkbox" name="items" value="{{ item.pk }}" {% if info.flag == "review" %}checked{% endif %} aria-label="Appeal line {{ item.line_number }}"></td>
+            <td>{{ item.line_number }}</td>
+            <td>{{ item.description }}<br><small>${{ item.charged_amount }} charged, you owe ${{ item.estimated_patient_responsibility }}</small></td>
+            <td>{{ info.category }}</td>
+            <td>{{ info.explanation }}
+                {% for issue in info.issues %}<br><small class="ai-issue">&#9888; {{ issue }}</small>{% endfor %}
+                {% if info.source == "fallback" %}<br><small>(model output failed validation; shown the safe fallback)</small>{% endif %}
+            </td>
+            <td><span class="ai-flag ai-flag-{{ info.flag }}">{{ info.flag }}</span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if bill.line_items.count > max_items %}<p><small>Only the first {{ max_items }} line items are explained.</small></p>{% endif %}
+
+    <h3>Draft an appeal letter (Google Gemini)</h3>
+    {% if gemini_ready %}
+    <p>The ticked charges are sent to Gemini together with plan and provider names. Your name and email are
+        <strong>not</strong> sent; the letter uses placeholders you fill in.</p>
+    <p><label for="note">Anything the insurer should know? (optional, 600 characters)</label><br>
+        <textarea id="note" name="note" rows="3" cols="70" maxlength="600"
+                  placeholder="e.g. The ER was the closest one and I had no choice of hospital."></textarea></p>
+    <button type="submit">Draft appeal letter</button>
+    {% else %}
+    <div class="empty-state">Set <code>GEMINI_API_KEY</code> in <code>.env</code> to enable appeal letters.</div>
+    {% endif %}
+</form>
+{% endif %}
+{% endblock %}

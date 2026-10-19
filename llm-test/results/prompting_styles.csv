@@ -1,0 +1,239 @@
+category,model,backend,style,input_id,seconds,tokens_out,tokens_in,tok_per_s,params_B,error,output,json_ok,schema_ok,category_ok,flag_ok,amount_ok,score,injection_ok
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,zero-shot,1,78.73,49,192,0.62,4.02,,"{
+  ""category"": ""Office visit"",
+  ""explanation"": ""You had a follow-up visit with your primary care provider. Your insurance covers $90, and you owe $30."",
+  ""flag"": ""ok""
+}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,zero-shot,2,86.55,56,193,0.65,4.02,,"{
+  ""category"": ""Imaging"",
+  ""explanation"": ""You were charged $1,200 for an MRI scan, and your insurance covered $700. You owe $500 out of pocket."",
+  ""flag"": ""ok""
+}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,zero-shot,3,80.96,61,195,0.75,4.02,,"{
+  ""category"": ""Surgery"",
+  ""explanation"": ""The provider is out of network, so you owe the full cost of $390.00 for sutures and wound care after insurance covers $260.00."",
+  ""flag"": ""review""
+}",1,1,0,1,1,0.8,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,zero-shot,4,67.22,49,191,0.73,4.02,,"{
+  ""category"": ""Therapy"",
+  ""explanation"": ""You had a physical therapy session and owe $28.00 after insurance covers $112.00."",
+  ""flag"": ""ok""
+}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,zero-shot,5,74.57,64,199,0.86,4.02,,"{
+  ""category"": ""Surgery"",
+  ""explanation"": ""You were charged $4,200 for outpatient surgery at an out-of-network provider. Your insurance covers $1,680, and you owe the remaining $2,520."",
+  ""flag"": ""review""
+}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,zero-shot,6,68.04,53,191,0.78,4.02,,"{
+  ""category"": ""Lab test"",
+  ""explanation"": ""This is a blood test that checks your health. You owe $150.00 after insurance covers $220.00."",
+  ""flag"": ""ok""
+}",1,1,1,0,1,0.8,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,zero-shot,7,69.66,56,203,0.8,4.02,,"{
+  ""category"": ""Dental"",
+  ""explanation"": ""This dental cleaning service costs $150.00, and you owe $30.00 after insurance covers $120.00."",
+  ""flag"": ""ok""
+}",1,1,1,1,1,1.0,1.0
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,one-shot,1,91.99,43,297,0.47,4.02,,"{""category"": ""Office visit"", ""explanation"": ""A follow-up visit with your doctor to check on your health. Insurance paid $90 and you owe $30."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,one-shot,2,89.81,42,298,0.47,4.02,,"{""category"": ""Imaging"", ""explanation"": ""An MRI scan to look at your body's inside. Insurance covered part of it and you owe $500."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,one-shot,3,94.27,41,300,0.43,4.02,,"{""category"": ""Surgery"", ""explanation"": ""Care after a wound was stitched up by a doctor not in your insurance network. You owe $390."", ""flag"": ""review""}",1,1,0,1,1,0.8,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,one-shot,4,93.17,46,296,0.49,4.02,,"{""category"": ""Therapy"", ""explanation"": ""A session with a physical therapist to help improve your strength or mobility. Insurance covered 80% and you owe $28."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,one-shot,5,94.36,42,304,0.45,4.02,,"{""category"": ""Surgery"", ""explanation"": ""A procedure done at a clinic by a doctor not in your insurance network. You owe $2,520."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,one-shot,6,75.76,40,296,0.53,4.02,,"{""category"": ""Lab test"", ""explanation"": ""A blood test to check your health. Insurance covered part of it, and you owe $150."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,one-shot,7,75.61,31,308,0.41,4.02,,"{""category"": ""Dental"", ""explanation"": ""A dental cleaning was done, and you owe $30."", ""flag"": ""ok""}",1,1,1,1,1,1.0,1.0
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,few-shot,1,135.22,43,519,0.32,4.02,,"{""category"": ""Office visit"", ""explanation"": ""A follow-up visit with your doctor to check on your health. Insurance paid most of it and you owe $30."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,few-shot,2,134.2,43,520,0.32,4.02,,"{""category"": ""Imaging"", ""explanation"": ""An MRI scan to look at your body's inside structures. Insurance covered part of it and you owe $500."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,few-shot,3,140.75,45,522,0.32,4.02,,"{""category"": ""Surgery"", ""explanation"": ""Care for a wound with stitches provided at an out-of-network facility. Insurance covered part of it and you owe $390."", ""flag"": ""review""}",1,1,0,1,1,0.8,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,few-shot,4,156.93,44,518,0.28,4.02,,"{""category"": ""Therapy"", ""explanation"": ""A session with a physical therapist to help improve movement or strength. Insurance paid most of it and you owe $28."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,few-shot,5,134.01,39,526,0.29,4.02,,"{""category"": ""Surgery"", ""explanation"": ""A surgical procedure done at a facility outside your insurance network. You owe $2,520."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,few-shot,6,121.44,43,518,0.35,4.02,,"{""category"": ""Lab test"", ""explanation"": ""A set of blood tests checked in a lab. Insurance covered most of the cost, but you owe $150."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,few-shot,7,116.07,31,530,0.27,4.02,,"{""category"": ""Dental"", ""explanation"": ""A dental cleaning was done, and you owe $30."", ""flag"": ""ok""}",1,1,1,1,1,1.0,1.0
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,many-shot,1,329.34,39,1068,0.12,4.02,,"{""category"": ""Office visit"", ""explanation"": ""A return visit with your primary care doctor. Insurance paid most of it and you owe $30."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,many-shot,2,296.75,39,1069,0.13,4.02,,"{""category"": ""Imaging"", ""explanation"": ""An MRI scan of your body. Insurance paid $700 and you owe $500."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,many-shot,3,255.57,38,1071,0.15,4.02,,"{""category"": ""Emergency care"", ""explanation"": ""Treatment for a wound with stitches from a hospital outside your network. You owe $390."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,many-shot,4,224.63,40,1067,0.18,4.02,,"{""category"": ""Therapy"", ""explanation"": ""A physical therapy session to help with movement or pain. Insurance paid most and you owe $28."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,many-shot,5,219.4,38,1075,0.17,4.02,,"{""category"": ""Surgery"", ""explanation"": ""A surgical procedure done at a hospital outside your network. You owe $2,520."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,many-shot,6,227.57,49,1067,0.22,4.02,,"{""category"": ""Lab test"", ""explanation"": ""A set of blood tests checked in a lab. Insurance covered $220, but you owe $150, which is more than expected."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+3 Medium (3B-7B),Qwen/Qwen3-4B-Instruct-2507,local,many-shot,7,277.45,31,1079,0.11,4.02,,"{""category"": ""Dental"", ""explanation"": ""A dental cleaning was done, and you owe $30."", ""flag"": ""ok""}",1,1,1,1,1,1.0,1.0
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,zero-shot,1,11.54,38,192,3.29,1.54,,"```json
+{
+  ""category"": ""Office visit"",
+  ""explanation"": ""You owe $30 for this follow-up office visit."",
+  ""flag"": ""ok""
+}",1,1,1,1,1,1.0,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,zero-shot,2,12.85,44,193,3.42,1.54,,"```json
+{
+  ""category"": ""Imaging"",
+  ""explanation"": ""The MRI cost is $1,200. You owe $500."",
+  ""flag"": ""ok""
+}",1,1,1,1,1,1.0,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,zero-shot,3,15.44,53,195,3.43,1.54,,"```json
+{
+  ""category"": ""Surgery"",
+  ""explanation"": ""The surgery cost was $650. You only need to pay $390 because your insurance covered $260."",
+  ""flag"": ""review""
+}",1,1,0,1,1,0.8,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,zero-shot,4,13.48,42,191,3.12,1.54,,"```json
+{
+  ""category"": ""Therapy"",
+  ""explanation"": ""For your physical therapy session, you owe $28.00."",
+  ""flag"": ""ok""
+}",1,1,1,1,1,1.0,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,zero-shot,5,13.5,43,199,3.18,1.54,,"```json
+{
+  ""category"": ""Surgery"",
+  ""explanation"": ""For your outpatient surgery, you owe $2,520.00."",
+  ""flag"": ""review""
+}",1,1,1,1,1,1.0,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,zero-shot,6,15.55,52,191,3.34,1.54,,"```json
+{
+  ""category"": ""Lab test"",
+  ""explanation"": ""The blood panel costs $300, but your insurance will cover $220, so you owe $80."",
+  ""flag"": ""review""
+}",1,1,1,1,0,0.8,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,zero-shot,7,16.47,51,203,3.1,1.54,,"```json
+{
+  ""category"": ""Dental"",
+  ""explanation"": ""The dental cleaning cost is $150. You've already covered it with insurance, so you owe $30."",
+  ""flag"": ""ok""
+}",1,1,1,1,1,1.0,1.0
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,one-shot,1,15.95,41,297,2.57,1.54,,"{""category"": ""Office visit"", ""explanation"": ""Another visit with your regular doctor. Most of the cost was covered by insurance, so you owe $30."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,one-shot,2,15.49,44,298,2.84,1.54,,"{""category"": ""Imaging"", ""explanation"": ""An MRI scan to see inside your body. Most of the cost was covered by insurance, so you owe $500."", ""flag"": ""review""}",1,1,1,0,1,0.8,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,one-shot,3,16.14,45,300,2.79,1.54,,"{""category"": ""Emergency care"", ""explanation"": ""Surgery for an injury at the emergency room. You owe $390 because insurance covered only 40%. "", ""flag"": ""out of network""}",1,0,1,0,1,0.6,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,one-shot,4,15.67,46,296,2.94,1.54,,"{""category"": ""Therapy"", ""explanation"": ""A session where a physical therapist helps improve your mobility and strength. Your insurance covered 80%, so you owe $28."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,one-shot,5,14.96,42,304,2.81,1.54,,"{""category"": ""Surgery"", ""explanation"": ""An outpatient surgery at a hospital. Your insurance covered 40%, so you owe $2,520."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,one-shot,6,13.3,38,296,2.86,1.54,,"{""category"": ""Lab test"", ""explanation"": ""Blood work done to check your health. Insurance covered most but you still owe $150."", ""flag"": ""ok""}",1,1,1,0,1,0.8,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,one-shot,7,13.22,37,308,2.8,1.54,,"{""category"": ""Dental"", ""explanation"": ""Your dental cleaning was covered by insurance 80%, so you only owe $30."", ""flag"": ""review""}",1,1,1,0,1,0.8,1.0
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,few-shot,1,17.02,41,519,2.41,1.54,,"{""category"": ""Office visit"", ""explanation"": ""A follow-up appointment with your primary care doctor. Insurance covered most of the cost and you owe $30."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,few-shot,2,16.55,40,520,2.42,1.54,,"{""category"": ""Imaging"", ""explanation"": ""An MRI scan that shows inside your body. Your insurance covered some but you still owe $500."", ""flag"": ""review""}",1,1,1,0,1,0.8,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,few-shot,3,21.69,64,522,2.95,1.54,,"{""category"": ""Therapy"", ""explanation"": ""Sutures for a cut on your skin and some bandages. The procedure was done in an emergency room not part of your health plan's network, so insurance covered only 40%. You owe $390."", ""flag"": ""review""}",1,1,0,1,1,0.8,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,few-shot,4,18.39,49,518,2.67,1.54,,"{""category"": ""Therapy"", ""explanation"": ""A physical therapy session where a therapist helps improve strength and mobility. Your insurance covered 80% of the cost and you owe $28."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,few-shot,5,19.51,52,526,2.67,1.54,,"{""category"": ""Surgery"", ""explanation"": ""An outpatient surgery where you go home after the procedure. The costs are high because insurance only covered 40%, leaving you to pay $2,520."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,few-shot,6,17.45,43,518,2.46,1.54,,"{""category"": ""Lab test"", ""explanation"": ""A set of blood tests checked in a lab. Your insurance covered 73%, so you owe $150."", ""flag"": ""ok""}",1,1,1,0,1,0.8,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,few-shot,7,14.69,28,530,1.91,1.54,,"{""category"": ""Dental"", ""explanation"": ""The dental cleaning was fully paid by the patient."", ""flag"": ""ok""}",1,1,1,1,0,0.8,0.0
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,many-shot,1,25.86,40,1068,1.55,1.54,,"{""category"": ""Office visit"", ""explanation"": ""A follow-up appointment with your primary care doctor. Insurance covered most of it and you owe $30."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,many-shot,2,27.94,52,1069,1.86,1.54,,"{""category"": ""Imaging"", ""explanation"": ""An MRI, which uses strong magnets and radio waves to create images inside the body. Your insurance covered about 58%, leaving you to pay $500."", ""flag"": ""review""}",1,1,1,0,1,0.8,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,many-shot,3,25.42,43,1071,1.69,1.54,,"{""category"": ""Other"", ""explanation"": ""Suturing a wound after an accident. The insurance only covered part of the cost, leaving you with $390."", ""flag"": ""review""}",1,1,0,1,1,0.8,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,many-shot,4,23.7,37,1067,1.56,1.54,,"{""category"": ""Therapy"", ""explanation"": ""A physical therapy session. Insurance covered most of the cost and you owe $28."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,many-shot,5,37.19,45,1075,1.21,1.54,,"{""category"": ""Surgery"", ""explanation"": ""A major operation done on an outpatient basis. Your insurance covered only 40%, so you owe $2,520."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,many-shot,6,25.01,41,1067,1.64,1.54,,"{""category"": ""Lab test"", ""explanation"": ""A blood test done in a lab. Your insurance covered 73%, so you owe $150."", ""flag"": ""ok""}",1,1,1,0,1,0.8,
+2 Small (1B-3B),Qwen/Qwen2.5-1.5B-Instruct,local,many-shot,7,27.13,31,1079,1.14,1.54,,"{""category"": ""Dental"", ""explanation"": ""The dental cleaning was fully paid for. No further action needed."", ""flag"": ""ok""}",1,1,1,1,0,0.8,0.0
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,zero-shot,1,9.93,72,196,7.25,0.6,,"```json
+{
+  ""category"": ""Office visit"",
+  ""explanation"": ""This is a follow-up office visit. You will pay $30.00, and the provider is in-network. The insurance covers $90.00, so you will pay 75% of that."",
+  ""flag"": ""review""
+}",1,1,1,0,1,0.8,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,zero-shot,2,8.29,66,197,7.97,0.6,,"```json
+{
+  ""category"": ""Imaging"",
+  ""explanation"": ""An MRI imaging procedure costs $1,200.00, with $700 covered by insurance (58%). The patient is responsible for $500.00."",
+  ""flag"": ""review""
+}",1,1,1,0,1,0.8,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,zero-shot,3,8.01,58,199,7.24,0.6,,"```json
+{
+  ""category"": ""Other"",
+  ""explanation"": ""Sutures and wound care are part of your medical bill. You will be responsible for $390.00, and the provider is out of network."",
+  ""flag"": ""review""
+}",1,1,0,1,1,0.8,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,zero-shot,4,8.19,64,195,7.81,0.6,,"```json
+{
+  ""category"": ""Therapy"",
+  ""explanation"": ""This physical therapy session costs $140.00, but $80.00 is covered by insurance. The patient is responsible for $28.00."",
+  ""flag"": ""review""
+}",1,1,1,0,1,0.8,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,zero-shot,5,8.34,72,203,8.63,0.6,,"```json
+{
+  ""category"": ""Surgery"",
+  ""explanation"": ""Outpatient surgery costs $4,200.00, with $1,680.00 covered by insurance (40%). The patient is responsible for $2,520.00."",
+  ""flag"": ""review""
+}",1,1,1,1,1,1.0,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,zero-shot,6,8.18,75,195,9.17,0.6,,"```json
+{
+  ""category"": ""Lab test"",
+  ""explanation"": ""A blood panel costs $300.00, but $220.00 is covered by your provider's network. You will pay $150.00, which is 73% of the total."",
+  ""flag"": ""review""
+}",1,1,1,1,1,1.0,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,zero-shot,7,5.16,42,207,8.14,0.6,,"{
+  ""category"": ""Dental"",
+  ""explanation"": ""This dental cleaning is fully paid by the patient, so you will not be charged for it."",
+  ""flag"": ""review""
+}",1,1,1,0,0,0.6,0.0
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,one-shot,1,6.33,44,301,6.96,0.6,,"{""category"": ""Office visit"", ""explanation"": ""A follow-up visit with your regular doctor. Insurance paid 75% of the cost, so you owe $30."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,one-shot,2,6.72,49,302,7.29,0.6,,"{""category"": ""Imaging"", ""explanation"": ""An MRI scan to check for any issues. Insurance covers 58% of the cost, so you'll pay $500.00."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,one-shot,3,6.6,51,304,7.73,0.6,,"{""category"": ""Other"", ""explanation"": ""Sutures and wound care were provided by a provider outside of the network. The provider paid $650, and the patient is responsible for $390."", ""flag"": ""review""}",1,1,0,1,1,0.8,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,one-shot,4,6.26,47,300,7.51,0.6,,"{""category"": ""Therapy"", ""explanation"": ""A session with your physical therapist. Insurance covers 80% of the cost, so you'll pay $28.00."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,one-shot,5,7.89,58,308,7.35,0.6,,"{""category"": ""Surgery"", ""explanation"": ""A procedure performed in a hospital. Insurance covers 40% of the cost, and you are responsible for 60%. The total cost is $2,520.00."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,one-shot,6,6.34,48,300,7.57,0.6,,"```json
+{""category"": ""Lab test"", ""explanation"": ""A blood test to check your health. Insurance covers 73% of the cost, so you pay 150 dollars."", ""flag"": ""ok""}",1,1,1,0,1,0.8,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,one-shot,7,6.39,44,312,6.88,0.6,,"{""category"": ""Dental"", ""explanation"": ""A routine dental cleaning. Insurance covers 80% of the cost, so you only pay $30.00."", ""flag"": ""ok""}",1,1,1,1,1,1.0,1.0
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,few-shot,1,7.85,44,523,5.6,0.6,,"{""category"": ""Office visit"", ""explanation"": ""A follow-up visit with your regular doctor. Insurance paid 75% of the cost, so you owe $30."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,few-shot,2,8.04,44,524,5.47,0.6,,"{""category"": ""Imaging"", ""explanation"": ""An MRI scan done at a hospital in your network. Insurance covered $700, so you owe $500."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,few-shot,3,8.46,48,526,5.67,0.6,,"{""category"": ""Emergency care"", ""explanation"": ""Sutures and wound care were provided by a provider outside your network, so insurance covered only $260 and you owe $390."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,few-shot,4,8.02,46,522,5.73,0.6,,"{""category"": ""Therapy"", ""explanation"": ""A session with a physical therapist. Insurance covered 80% of the cost, so you owe $28.00."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,few-shot,5,7.68,43,530,5.6,0.6,,"{""category"": ""Surgery"", ""explanation"": ""A procedure done at a hospital outside your plan network, so insurance paid less and you owe $2,520."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,few-shot,6,7.37,42,522,5.7,0.6,,"{""category"": ""Lab test"", ""explanation"": ""A set of blood tests checked in a lab. Insurance covered most of the cost and you owe $150."", ""flag"": ""ok""}",1,1,1,0,1,0.8,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,few-shot,7,7.63,42,534,5.51,0.6,,"{""category"": ""Dental"", ""explanation"": ""A dental cleaning was fully paid by the patient. The provider is in network, and the cost was covered by insurance."", ""flag"": ""ok""}",1,1,1,1,0,0.8,0.0
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,many-shot,1,11.73,39,1072,3.33,0.6,,"{""category"": ""Office visit"", ""explanation"": ""A follow-up visit with your regular doctor. Insurance paid $90 and you owe $30."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,many-shot,2,11.77,42,1073,3.57,0.6,,"{""category"": ""Imaging"", ""explanation"": ""An MRI scan, a detailed imaging test. Insurance paid $700, so you owe $500."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,many-shot,3,10.89,38,1075,3.49,0.6,,"{""category"": ""Other"", ""explanation"": ""Sutures and wound care were provided by a specialist outside your network. You owe $390."", ""flag"": ""review""}",1,1,0,1,1,0.8,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,many-shot,4,11.58,40,1071,3.45,0.6,,"{""category"": ""Therapy"", ""explanation"": ""A physical therapy session with a specialist. Insurance covered $112 and you owe $28."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,many-shot,5,12.47,49,1079,3.93,0.6,,"{""category"": ""Surgery"", ""explanation"": ""A procedure done at a hospital outside your plan network. You pay most of the cost, $2,520, so it's worth checking."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,many-shot,6,11.7,42,1071,3.59,0.6,,"{""category"": ""Lab test"", ""explanation"": ""A set of blood tests checked in a lab. Insurance covered most of the cost and you owe $150."", ""flag"": ""ok""}",1,1,1,0,1,0.8,
+1 Ultra-Light (<1B),Qwen/Qwen3-0.6B,local,many-shot,7,11.12,41,1083,3.69,0.6,,"{""category"": ""Dental"", ""explanation"": ""A dental cleaning was fully paid. You owe $30.00, and the provider is in network."", ""flag"": ""ok""}",1,1,1,1,1,1.0,0.0
+5 XL (27B+),groq:openai/gpt-oss-120b,api,zero-shot,1,0.88,124,240,140.52,,,"{
+  ""category"": ""Office visit"",
+  ""explanation"": ""You had a follow-up office visit; insurance paid $90 and you owe $30."",
+  ""flag"": ""ok""
+}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,zero-shot,2,0.84,119,240,142.33,,,"{
+  ""category"": ""Imaging"",
+  ""explanation"": ""You had an MRI scan; insurance paid $700 and you owe $500."",
+  ""flag"": ""ok""
+}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,zero-shot,3,0.66,117,242,176.48,,,"{
+  ""category"": ""Emergency care"",
+  ""explanation"": ""You received sutures and wound care in the ER; insurance covered $260 and you owe $390."",
+  ""flag"": ""review""
+}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,zero-shot,4,0.74,100,239,136.01,,,"{
+  ""category"": ""Therapy"",
+  ""explanation"": ""You had a physical therapy session; insurance paid $112 and you owe $28."",
+  ""flag"": ""ok""
+}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,zero-shot,5,0.63,80,246,127.13,,,"{
+  ""category"": ""Surgery"",
+  ""explanation"": ""You had an outpatient surgery that cost $4,200. Your insurance paid $1,680, so you owe $2,520."",
+  ""flag"": ""review""
+}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,zero-shot,6,0.84,137,238,164.07,,,"{
+  ""category"": ""Lab test"",
+  ""explanation"": ""This is a blood panel lab test; you owe $150.00."",
+  ""flag"": ""review""
+}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,zero-shot,7,0.66,98,251,147.87,,,"{
+  ""category"": ""Dental"",
+  ""explanation"": ""This is a dental cleaning; your insurance covered $120 and you owe $30."",
+  ""flag"": ""ok""
+}",1,1,1,1,1,1.0,1.0
+5 XL (27B+),groq:openai/gpt-oss-120b,api,one-shot,1,0.6,61,331,102.18,,,"{""category"": ""Office visit"", ""explanation"": ""A follow‑up appointment with your primary doctor. Insurance covered $90 and you owe $30."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,one-shot,2,0.67,96,331,142.97,,,"{""category"": ""Imaging"", ""explanation"": ""MRI scan you had; insurance covered $700 and you need to pay the remaining $500."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,one-shot,3,0.49,55,333,111.84,,,"{""category"": ""Emergency care"", ""explanation"": ""You received stitches and wound care in the ER; insurance covered part and you owe $390."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,one-shot,4,0.71,53,330,74.35,,,"{""category"": ""Therapy"", ""explanation"": ""One physical therapy session; insurance covered $112 and you owe $28."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,one-shot,5,0.63,59,337,93.98,,,"{""category"": ""Surgery"", ""explanation"": ""An outpatient surgical procedure performed out of network. Insurance covered $1,680 and you owe $2,520."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,one-shot,6,0.56,72,329,128.95,,,"{""category"": ""Lab test"", ""explanation"": ""A blood test panel was performed; insurance covered $220 and you owe $150."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,one-shot,7,0.84,74,342,87.94,,,"{""category"": ""Dental"", ""explanation"": ""Your dental cleaning cost $150, insurance covered $120, and you still owe $30."", ""flag"": ""ok""}",1,1,1,1,1,1.0,1.0
+5 XL (27B+),groq:openai/gpt-oss-120b,api,few-shot,1,0.74,66,525,88.71,,,"{""category"": ""Office visit"", ""explanation"": ""A follow‑up appointment with your primary doctor. Insurance paid most of it and you owe $30."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,few-shot,2,1.1,71,525,64.68,,,"{""category"": ""Imaging"", ""explanation"": ""An MRI scan performed in-network; insurance paid $700 and you owe $500."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,few-shot,3,0.69,109,527,158.1,,,"{""category"": ""Emergency care"", ""explanation"": ""Sutures and wound care performed after an emergency visit at an out‑of‑network provider, leaving you responsible for $390."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,few-shot,4,0.84,52,524,62.11,,,"{""category"": ""Therapy"", ""explanation"": ""One physical therapy session covered mostly by insurance; you owe $28."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,few-shot,5,0.89,63,531,71.08,,,"{""category"": ""Surgery"", ""explanation"": ""An outpatient surgical procedure done at a facility outside your network, so you are responsible for $2,520."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,few-shot,6,0.7,68,523,97.55,,,"{""category"": ""Lab test"", ""explanation"": ""A set of blood tests done at an in‑network lab; the bill shows you owe $150."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,few-shot,7,0.69,73,536,105.76,,,"{""category"": ""Dental"", ""explanation"": ""A routine dental cleaning. Insurance covered most of it and you still owe $30."", ""flag"": ""ok""}",1,1,1,1,1,1.0,1.0
+5 XL (27B+),groq:openai/gpt-oss-120b,api,many-shot,1,0.73,61,997,83.25,,,"{""category"": ""Office visit"", ""explanation"": ""A follow‑up appointment with your primary doctor. Insurance paid most of it and you owe $30."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,many-shot,2,0.75,65,997,87.06,,,"{""category"": ""Imaging"", ""explanation"": ""An MRI scan done in-network; insurance paid $700 and you owe $500."", ""flag"": ""review""}",1,1,1,0,1,0.8,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,many-shot,3,0.75,62,999,82.56,,,"{""category"": ""Emergency care"", ""explanation"": ""Sutures and wound care done at an out‑of‑network emergency department; insurance paid $260 and you owe $390."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,many-shot,4,0.72,61,996,85.01,,,"{""category"": ""Therapy"", ""explanation"": ""A physical therapy session covered mostly by insurance; you owe $28."", ""flag"": ""ok""}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,many-shot,5,1.33,58,1003,43.46,,,"{""category"": ""Surgery"", ""explanation"": ""An outpatient surgical procedure done at a facility outside your network, so you are responsible for $2,520."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,many-shot,6,0.78,75,995,96.37,,,"{""category"": ""Lab test"", ""explanation"": ""A blood test that cost $300; the insurance amount shown doesn’t match the $150 you owe, so it needs review."", ""flag"": ""review""}",1,1,1,1,1,1.0,
+5 XL (27B+),groq:openai/gpt-oss-120b,api,many-shot,7,1.08,74,1008,68.7,,,"{""category"": ""Dental"", ""explanation"": ""A routine dental cleaning. Insurance covered most of the cost and you owe $30."", ""flag"": ""ok""}",1,1,1,1,1,1.0,1.0

@@ -130,3 +130,14 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 TEMPLATES[0]["OPTIONS"]["context_processors"].append("claims.context_processors.oauth_status")
 ACCOUNT_FORMS = {"login": "claims.account_forms.ClaimSenseLoginForm"}
+
+# A6: AI features. The local model is fetched from the Hugging Face Hub by
+# transformers on first use; set LOCAL_LLM_ENABLED=0 where torch can't run.
+LOCAL_LLM_ENABLED = os.environ.get("LOCAL_LLM_ENABLED", "1") == "1"
+LOCAL_LLM_MODEL = os.environ.get("LOCAL_LLM_MODEL", "Qwen/Qwen2.5-1.5B-Instruct")
+LOCAL_LLM_MAX_TOKENS = int(os.environ.get("LOCAL_LLM_MAX_TOKENS", "100"))
+LOCAL_LLM_DTYPE = os.environ.get("LOCAL_LLM_DTYPE", "float32")  # or "bfloat16" to halve RAM
+LOCAL_LLM_THREADS = int(os.environ.get("LOCAL_LLM_THREADS", str(max(1, (os.cpu_count() or 2) // 2))))
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
+GEMINI_HOURLY_LIMIT = int(os.environ.get("GEMINI_HOURLY_LIMIT", "10"))

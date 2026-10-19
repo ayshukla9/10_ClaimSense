@@ -126,3 +126,11 @@ Run migrations for each deployment, including the A5 patient ownership migration
 Custom signup/login/logout is served at `/accounts/`. Google OAuth uses django-allauth and private environment credentials. All authenticated accounts can use ordinary pages and protected APIs. Patient records are scoped to an explicit `Patient.user` link assigned by staff; unlinked accounts see empty results. Staff retain full record access and exclusive access to Manage. Navigation and all existing record routes are protected. The one public JSON API is `GET /api/public/plan-types/`, a database count of catalogue plans by type with no patient or bill information.
 
 See [A5 setup and deployment](docs/a5/README.md), [290-second team demo](docs/a5/demo.md), and [evidence register](docs/a5/evidence.md). The live website is https://okc2.pythonanywhere.com/ and the public API is https://okc2.pythonanywhere.com/api/public/plan-types/. A5 was merged into `main` and deployed on October 12, 2026; the team completed real Google signup/login and captured production Vega-Lite and three API-consumer demonstrations. The server-generated `docs/a5/production_plan_types.txt` uses the absolute production API URL and is the external-editor submission source; `static/vega-lite/plan_types.txt` is the relative-URL hosted version. The video and submission packaging remain unfinished. Google publishing and a fresh availability check remain follow-ups; see the evidence register for precise verification limits.
+
+
+## P1-A6: Hugging Face LLMs + Gemini
+
+Bill pages now have **Explain with AI**: a local Hugging Face model (via `transformers`) explains and flags each
+line item, and Google Gemini drafts an appeal letter for the flagged charges. See [README_AI.md](README_AI.md) for
+the workflow, preprocessing and guardrails, [`llm-test/ai_prototype.ipynb`](llm-test/ai_prototype.ipynb) for the
+15-model benchmark and prompting comparison, and the A6 section of `docs/notes/notes.txt` for the cost reflection.

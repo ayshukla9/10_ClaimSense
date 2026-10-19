@@ -22,3 +22,11 @@ figure { margin: 16px 0; } figure img { max-width: 100%; border: 1px solid #ddd;
 .btn:hover { background: #0d1e38; }
 .vega-chart { background: #fff; border: 1px solid #e2e6ee; border-radius: 6px; padding: 12px; overflow-x: auto; }
 .chart-links { font-size: .85rem; color: #555; }
+
+/* A6 AI features */
+.ai-flag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .8rem; font-family: -apple-system, Helvetica, Arial, sans-serif; }
+.ai-flag-ok { background: #dcfce7; color: #14532d; }
+.ai-flag-review { background: #fef3c7; color: #78350f; }
+.ai-issue { color: #92400e; }
+.ai-letter { white-space: pre-wrap; font-family: Georgia, serif; line-height: 1.5; }
+textarea { font: inherit; max-width: 100%; }
