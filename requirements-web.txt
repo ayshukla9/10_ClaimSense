@@ -1,0 +1,14 @@
+# Web-server requirements: everything the site needs EXCEPT the local LLM and notebook
+# packages (torch, transformers, jupyter...), which do not fit PythonAnywhere's free disk.
+# Use with LOCAL_LLM_ENABLED=0: line items then get the automatic rule checks instead of
+# AI explanations, and Gemini appeal letters still work.
+# Full local setup (graders, development): pip install -r requirements.txt
+asgiref==3.12.1
+Django==5.2.12
+sqlparse==0.6.0
+python-dotenv==1.0.1
+matplotlib==3.10.8
+requests==2.34.2
+vl-convert-python==1.9.0.post1
+django-allauth[socialaccount]==65.19.7
+google-genai==2.31.0

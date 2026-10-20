@@ -26,3 +26,16 @@ media/
 
 # OS
 .DS_Store
+
+# A6: model weights and caches -- never commit (transformers re-downloads them)
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.gguf
+*.onnx
+*.h5
+.cache/
+hf_cache/
+.ipynb_checkpoints/

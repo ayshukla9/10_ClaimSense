@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Appeal letter {{ bill.reference_number }} -- ClaimSense{% endblock %}
+{% block content %}
+<h2>Appeal letter: bill {{ bill.reference_number }}</h2>
+{% if error %}
+<div class="empty-state"><strong>{{ error }}</strong></div>
+{% else %}
+<p>Drafted by Google Gemini (<code>{{ gemini_model }}</code>). Check every detail before sending it; AI can make mistakes.</p>
+<pre class="card ai-letter">{{ letter }}</pre>
+<details>
+    <summary>What was sent to Gemini</summary>
+    <pre class="card ai-letter">{{ prompt }}</pre>
+</details>
+{% endif %}
+<p><a href="{% url 'claims:bill-explain' bill.pk %}">&larr; Back to AI explanation</a> |
+    <a href="{{ bill.get_absolute_url }}">Back to bill</a></p>
+{% endblock %}

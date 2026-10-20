@@ -61,7 +61,7 @@ After review/merge of the feature branch into main:
 
 1. Back up the live SQLite database to a private server directory. Preserve the live `.env`, accounts and patient records. Prefer a private database path outside the checkout via `DATABASE_PATH`; migrate the existing data there without replacing it with the repository sample database.
 2. In the existing server checkout: `git pull --ff-only origin main`.
-3. Activate the existing web app virtualenv; `pip install -r requirements.txt`.
+3. Activate the existing web app virtualenv; `pip install -r requirements-web.txt` (since A6, `requirements.txt` also includes torch for the local AI model, which does not fit PythonAnywhere's free disk; see README_AI.md).
 4. Configure a strong SECRET_KEY, the exact `ALLOWED_HOSTS=okc2.pythonanywhere.com`, and Google credentials in private environment configuration.
 5. Ensure the existing PythonAnywhere WSGI file adds this checkout to `sys.path` and sets `DJANGO_SETTINGS_MODULE=claimsense_project.settings.production` before importing Django's WSGI application. Retain existing host-specific paths.
 6. Run `python manage.py migrate --settings=claimsense_project.settings.production`, then `python manage.py collectstatic --noinput --settings=claimsense_project.settings.production`. Map `/static/` to this checkout's `staticfiles/` directory in the Web tab. Reload the existing web app.

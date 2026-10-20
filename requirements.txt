@@ -6,3 +6,15 @@ matplotlib==3.10.8
 requests==2.34.2
 vl-convert-python==1.9.0.post1
 django-allauth[socialaccount]==65.19.7
+
+# A6: local Hugging Face model (weights download automatically on first use).
+# CPU-only torch is enough; on Linux, `pip install torch --index-url https://download.pytorch.org/whl/cpu` keeps it small.
+torch==2.14.1
+transformers==5.20.1
+accelerate==1.15.0
+huggingface_hub==2.2.0
+# A6: external API (Google Gemini)
+google-genai==2.31.0
+# A6: llm-test/ai_prototype.ipynb
+pandas==3.0.6
+jupyter==1.1.1
