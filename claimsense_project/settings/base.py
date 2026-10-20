@@ -23,6 +23,14 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # Example of a second secret pulled the same way (real or dummy API key).
 CLAIMS_EXTERNAL_API_KEY = os.environ.get("CLAIMS_EXTERNAL_API_KEY", "")
 
+# P1-A6 text intelligence. The local model's weights download on first use.
+LOCAL_LLM_MODEL = os.environ.get("LOCAL_LLM_MODEL", "Qwen/Qwen3-0.6B")  # see llm-test/ai_prototype.ipynb
+LOCAL_LLM_MAX_NEW_TOKENS = 600
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+EXPLAIN_MODEL = os.environ.get("EXPLAIN_MODEL", "openai/gpt-oss-120b")  # any Groq chat model
+EXPLAIN_TIMEOUT_SECONDS = 30
+AI_RATE_LIMIT = int(os.environ.get("AI_RATE_LIMIT", "20"))  # model calls per user per 10 minutes
+
 # Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",

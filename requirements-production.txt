@@ -1,0 +1,11 @@
+# Same as requirements.txt minus the local-model stack (torch/transformers),
+# for small servers such as PythonAnywhere free accounts. The AI Parser page then
+# reports that the local model is unavailable; Gemini explanations still work.
+asgiref==3.12.1
+Django==5.2.12
+sqlparse==0.6.0
+python-dotenv==1.0.1
+matplotlib==3.10.8
+requests==2.34.2
+vl-convert-python==1.9.0.post1
+django-allauth[socialaccount]==65.19.7

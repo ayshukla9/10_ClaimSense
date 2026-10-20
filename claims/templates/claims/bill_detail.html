@@ -24,5 +24,6 @@
     <tfoot><tr><th colspan="2">Totals</th><th>${{ totals.charged }}</th><th>${{ totals.covered }}</th><th>${{ totals.patient }}</th></tr></tfoot>
     {% endif %}
 </table>
+<p><a class="btn" href="{% url 'claims:bill-explain' bill.pk %}">Explain this bill (AI)</a></p>
 <p><a href="{% url 'claims:home' %}">&larr; Back home</a></p>
 {% endblock %}

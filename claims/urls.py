@@ -3,6 +3,7 @@ from .access import private_view
 
 from . import (
     views,
+    views_ai,
     views_api,
     views_charts,
     views_exports,
@@ -43,6 +44,9 @@ urlpatterns = [
     path("api/summary/providers/", views_api.api_summary_providers, name="api-summary-providers"),
     path("api/summary/bills/", views_api.api_summary_bills, name="api-summary-bills"),
     path("api/procedures/", views_external.api_procedures, name="api-procedures"),
+    # P1-A6 text intelligence
+    path("ai/parse/", views_ai.ai_parse, name="ai-parse"),
+    path("bills/<int:pk>/explain/", views_ai.bill_explain, name="bill-explain"),
 ]
 
 # Protect every existing records route, including exports and chart images.

@@ -1,0 +1,7 @@
+model,bill,cpu_seconds,score
+Qwen/Qwen3-0.6B,clean-table,3.6,1.0
+Qwen/Qwen3-0.6B,thousands-and-payments,2.9,0.9
+Qwen/Qwen3-0.6B,messy-ocr,3.8,1.0
+Qwen/Qwen3-4B-Instruct-2507,clean-table,103.0,1.0
+Qwen/Qwen3-4B-Instruct-2507,thousands-and-payments,158.2,1.0
+Qwen/Qwen3-4B-Instruct-2507,messy-ocr,22.3,1.0

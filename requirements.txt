@@ -6,3 +6,7 @@ matplotlib==3.10.8
 requests==2.34.2
 vl-convert-python==1.9.0.post1
 django-allauth[socialaccount]==65.19.7
+# P1-A6 local Hugging Face model
+torch>=2.6  # tested with 2.14.1
+transformers>=4.56,<6  # tested with 5.20.1; uses the dtype= argument
+accelerate>=1.0  # tested with 1.15.0

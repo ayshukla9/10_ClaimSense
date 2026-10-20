@@ -26,3 +26,13 @@ media/
 
 # OS
 .DS_Store
+
+# P1-A6: model weights and notebook clutter -- never commit
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.gguf
+*.onnx
+llm-test/.ipynb_checkpoints/

@@ -23,6 +23,7 @@
         <a href="{% url 'claims:charts' %}">Charts</a>
         <a href="{% url 'claims:vega-charts' %}">Vega-Lite</a>
         <a href="{% url 'claims:procedure-lookup' %}">Procedures</a>
+        <a href="{% url 'claims:ai-parse' %}">AI Parser</a>
         {% if user.is_staff %}<a href="{% url 'claims:bill-manage' %}">Manage</a>{% endif %}
         <a href="{% url 'claims:api-bills' %}">API</a>
         {% endif %}
