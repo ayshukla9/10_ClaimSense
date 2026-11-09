@@ -1,8 +1,10 @@
-"""A6: AI features on a bill.
+"""AI features.
 
-1. Local Hugging Face model (claims/ai/local_llm.py) explains every line item in plain English.
-2. Google Gemini (claims/ai/gemini_client.py) drafts an appeal letter for the flagged items.
-Both run only on bills the signed-in user may already see (visible_bills).
+1. A6: local Hugging Face model (claims/ai/local_llm.py) explains every line item in plain English.
+2. A9: each line item also shows the closest plan rule (claims/ai/retrieval.py, no LLM call).
+3. A9: "Ask about my plan" answers questions from plan documents (claims/ai/rag.py, local models only).
+4. A6 (optional, secondary): Google Gemini drafts an appeal letter for the flagged items.
+Everything runs only on bills and plans the signed-in user may already see.
 """
 import logging
 
@@ -12,7 +14,8 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
 
 from .access import visible_bills
-from .ai import gemini_client, guardrails, local_llm
+from .ai import gemini_client, guardrails, local_llm, rag
+from .models import InsurancePlan
 
 log = logging.getLogger(__name__)
 
@@ -39,17 +42,64 @@ def bill_explain(request, pk):
     ctx = {"bill": bill, "model_name": settings.LOCAL_LLM_MODEL, "max_items": MAX_ITEMS,
            "gemini_ready": bool(settings.GEMINI_API_KEY)}
     if request.method == "POST":
-        ctx["rows"], ctx["notice"] = _explanations(bill)
+        rows, ctx["notice"] = _explanations(bill)
+        # A9: attach the closest plan rule to each line item (retrieval only; never breaks the page).
+        ctx["rows"] = [(item, {**info, "plan_rule": rag.rule_for_line_item(item)}) for item, info in rows]
     return render(request, "claims/bill_explain.html", ctx)
 
 
-def _over_limit(user):
-    key = f"a6-gemini-calls:{user.pk}"
+def _over_limit(user, name="gemini", limit=None):
+    key = f"a6-{name}-calls:{user.pk}"
+    limit = settings.GEMINI_HOURLY_LIMIT if limit is None else limit
     calls = cache.get_or_set(key, 0, 60 * 60)
-    if calls >= settings.GEMINI_HOURLY_LIMIT:
+    if calls >= limit:
         return True
     cache.incr(key)
     return False
+
+
+EXAMPLE_QUESTIONS = [
+    "I went to an out-of-network emergency room. Do I have to pay out-of-network prices?",
+    "What is my deductible and what do I pay after I meet it?",
+    "Can I see a specialist outside my network?",
+    "How long do I have to appeal a denied claim?",
+    "Is my yearly physical free before I meet my deductible?",
+]
+
+
+def _plans_for(user):
+    """Staff can ask about any plan; a patient only about their own; anyone else gets general rules."""
+    if user.is_staff:
+        return list(InsurancePlan.objects.all())
+    patient = getattr(user, "patient_record", None)
+    return [patient.insurance_plan] if patient else []
+
+
+@require_http_methods(["GET", "POST"])
+def ask_plan(request):
+    """A9: question -> plan-filtered retrieval -> local LLM answer with citations.
+    GET shows the form; the models only run on POST."""
+    plans = _plans_for(request.user)
+    chosen = request.POST.get("plan") or request.GET.get("plan")
+    plan = next((p for p in plans if str(p.pk) == str(chosen)), plans[0] if plans else None)
+    ctx = {"plans": plans, "plan": plan, "examples": EXAMPLE_QUESTIONS,
+           "max_chars": guardrails.MAX_QUESTION_CHARS, "model_name": settings.LOCAL_LLM_MODEL,
+           "embedding_model": settings.EMBEDDING_MODEL, "question": request.GET.get("q", "")[:500]}
+    status = 200
+    if request.method == "POST":
+        ctx["question"] = request.POST.get("question", "")[:2000]
+        try:
+            guardrails.check_question(ctx["question"])  # validate before counting toward the limit
+            if _over_limit(request.user, "rag", settings.RAG_HOURLY_LIMIT):
+                ctx["error"], status = f"Limit of {settings.RAG_HOURLY_LIMIT} questions per hour reached.", 429
+            else:
+                ctx["answer"] = rag.answer_question(ctx["question"], plan)
+        except guardrails.UnsafeInput as exc:
+            ctx["error"], status = str(exc), 400
+        except Exception:  # model crash, out of memory, corrupt cache: never a 500 page
+            log.exception("Plan question failed")
+            ctx["error"], status = "Something went wrong while answering. Please try again.", 503
+    return render(request, "claims/ask_plan.html", ctx, status=status)
 
 
 @require_http_methods(["POST"])

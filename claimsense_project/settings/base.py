@@ -136,8 +136,27 @@ ACCOUNT_FORMS = {"login": "claims.account_forms.ClaimSenseLoginForm"}
 LOCAL_LLM_ENABLED = os.environ.get("LOCAL_LLM_ENABLED", "1") == "1"
 LOCAL_LLM_MODEL = os.environ.get("LOCAL_LLM_MODEL", "Qwen/Qwen2.5-1.5B-Instruct")
 LOCAL_LLM_MAX_TOKENS = int(os.environ.get("LOCAL_LLM_MAX_TOKENS", "100"))
-LOCAL_LLM_DTYPE = os.environ.get("LOCAL_LLM_DTYPE", "float32")  # or "bfloat16" to halve RAM
+# A9: where the local model runs. cpu (default, works everywhere), mps (Apple-silicon GPU), cuda, or auto.
+LOCAL_LLM_DEVICE = os.environ.get("LOCAL_LLM_DEVICE", "cpu")
+# Empty = float32 on cpu, float16 on mps/cuda. Or set float32 / float16 / bfloat16 explicitly.
+LOCAL_LLM_DTYPE = os.environ.get("LOCAL_LLM_DTYPE", "")
 LOCAL_LLM_THREADS = int(os.environ.get("LOCAL_LLM_THREADS", str(max(1, (os.cpu_count() or 2) // 2))))
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
 GEMINI_HOURLY_LIMIT = int(os.environ.get("GEMINI_HOURLY_LIMIT", "10"))
+# A9: hard time limit for one line-item explanation (transformers max_time).
+LOCAL_LLM_MAX_SECONDS = float(os.environ.get("LOCAL_LLM_MAX_SECONDS", "45"))
+
+# A9: "Ask about my plan" -- retrieval (sentence-transformers) + the local model above.
+# Embedding weights (~90 MB) download from the Hugging Face Hub on first use.
+RAG_EMBEDDINGS_ENABLED = os.environ.get("RAG_EMBEDDINGS_ENABLED", "1") == "1"
+EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+RAG_TOP_K = int(os.environ.get("RAG_TOP_K", "3"))
+RAG_MIN_SCORE = float(os.environ.get("RAG_MIN_SCORE", "0.25"))          # cosine similarity, embeddings
+RAG_KEYWORD_MIN_SCORE = float(os.environ.get("RAG_KEYWORD_MIN_SCORE", "0.10"))  # TF-IDF fallback
+RAG_FILTER_BY_PLAN = os.environ.get("RAG_FILTER_BY_PLAN", "1") == "1"   # 0 = the A9 "before" setup
+RAG_CHUNK_WORDS = int(os.environ.get("RAG_CHUNK_WORDS", "120"))
+RAG_MAX_TOKENS = int(os.environ.get("RAG_MAX_TOKENS", "120"))
+RAG_MAX_SECONDS = float(os.environ.get("RAG_MAX_SECONDS", "60"))
+RAG_HOURLY_LIMIT = int(os.environ.get("RAG_HOURLY_LIMIT", "30"))
+RAG_INDEX_DIR = os.environ.get("RAG_INDEX_DIR", str(BASE_DIR / ".cache" / "rag"))
