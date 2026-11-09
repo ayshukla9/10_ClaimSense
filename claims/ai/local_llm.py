@@ -22,6 +22,17 @@ class LocalModelUnavailable(RuntimeError):
     pass
 
 
+def resolve_device(torch):
+    """LOCAL_LLM_DEVICE: cpu (default), mps (Apple-silicon GPU), cuda, or auto."""
+    wanted = settings.LOCAL_LLM_DEVICE
+    if wanted == "auto":
+        if torch.cuda.is_available():
+            return "cuda"
+        mps = getattr(torch.backends, "mps", None)
+        return "mps" if mps is not None and mps.is_available() else "cpu"
+    return wanted
+
+
 def get_pipeline():
     """Load the model once per process; later calls reuse it."""
     global _pipeline
@@ -35,18 +46,32 @@ def get_pipeline():
             except ImportError as exc:
                 raise LocalModelUnavailable("torch and transformers are not installed on this server.") from exc
             torch.set_num_threads(settings.LOCAL_LLM_THREADS)
-            # float32 is fastest on CPUs without bf16 support; bfloat16 halves RAM for bigger models.
+            device = resolve_device(torch)
+            # float32 is safest on a plain CPU; on an Apple-silicon GPU (mps) or CUDA, float16 halves
+            # RAM and is several times faster (A9 latency fix, see README_AI.md 3.4).
+            dtype = settings.LOCAL_LLM_DTYPE or ("float32" if device == "cpu" else "float16")
+            log.info("Loading %s on %s (%s)", settings.LOCAL_LLM_MODEL, device, dtype)
             _pipeline = pipeline("text-generation", model=settings.LOCAL_LLM_MODEL,
-                                 dtype=getattr(torch, settings.LOCAL_LLM_DTYPE), device_map="cpu")
+                                 dtype=getattr(torch, dtype), device=device)
     return _pipeline
 
 
-def _generate(messages):
+def generate(messages, max_new_tokens, stop_strings=None, max_seconds=None):
+    """Greedy decoding with a hard time limit (A9 guardrail): transformers stops generating after
+    max_seconds, so a slow CPU returns a short answer instead of hanging the request."""
     pipe = get_pipeline()
-    # Same decoding as the notebook benchmark: greedy, and stop at the first "}" (end of the JSON object).
-    out = pipe(messages, max_new_tokens=settings.LOCAL_LLM_MAX_TOKENS, do_sample=False,
-               return_full_text=False, stop_strings=["}"], tokenizer=pipe.tokenizer)
+    kwargs = {"max_new_tokens": max_new_tokens, "do_sample": False, "return_full_text": False,
+              "max_time": max_seconds or settings.LOCAL_LLM_MAX_SECONDS}
+    if stop_strings:
+        kwargs.update(stop_strings=stop_strings, tokenizer=pipe.tokenizer)
+    out = pipe(messages, **kwargs)
     return out[0]["generated_text"]
+
+
+def _generate(messages):
+    # Same decoding as the notebook benchmark: greedy, and stop at the first "}" (end of the JSON object).
+    # A reply cut off by the time limit is incomplete JSON, so parse_explanation turns it into the fallback.
+    return generate(messages, settings.LOCAL_LLM_MAX_TOKENS, stop_strings=["}"])
 
 
 def rules_only(item):
@@ -77,4 +102,5 @@ def explain_line_item(item):
             result["source"] = "model"
         cache.set(key, result, 60 * 60 * 24)
     # The rule checks always win: a model saying "ok" never hides a real problem.
-    return {**result, "flag": "review" if issues else result["flag"], "issues": issues}
+    # model_flag keeps the model's own answer so the A9 evaluation can tell the two apart.
+    return {**result, "model_flag": result["flag"], "flag": "review" if issues else result["flag"], "issues": issues}

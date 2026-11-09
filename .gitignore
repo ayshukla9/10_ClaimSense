@@ -39,3 +39,9 @@ media/
 .cache/
 hf_cache/
 .ipynb_checkpoints/
+
+# A9: retrieval index (rebuilt automatically) and local evaluation databases
+.cache/
+*.npy
+*.npz
+sentence_transformers/

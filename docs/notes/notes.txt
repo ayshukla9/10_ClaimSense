@@ -399,3 +399,22 @@ It is better to switch to a paid API of comparable model size when:
 Sources: AWS prices from DoiT and Holori price trackers (Feb-Jul 2026 snapshots); Gemini prices from
 ai.google.dev/gemini-api/docs/pricing; Groq prices from console.groq.com/docs/models; Hugging Face
 marketplace prices from router.huggingface.co/v1/models (saved in llm-test/results/api_pricing_snapshot.csv).
+
+
+=====================================================
+P1-A9 Notes -- Integrated AI (local Django integration)
+=====================================================
+
+- New primary feature: "Ask about my plan" (/ask/). RAG on public models only:
+  all-MiniLM-L6-v2 embeddings over claims/knowledge/*.md + the member's plan row,
+  answered by the A6 model (Qwen2.5-1.5B-Instruct) with citations.
+- Explain page now shows the closest plan rule per line item (retrieval, no extra LLM call).
+- Improvements: plan-type filter + similarity threshold (wrong-plan chunks 4 -> 0, answers 196 s -> 2.8 s on the Apple GPU,
+  off-topic questions no longer reach the LLM); narrower injection filter (stopped
+  blocking ordinary questions like "Can my insurer disregard my appeal?").
+- Evaluation: python manage.py evaluate_ai --variant both (needs seed_demo_data).
+  Full write-up in README_AI.md; demo script in docs/a9/demo.md.
+
+Reminder for teammates:
+- pip install -r requirements.txt again (sentence-transformers is new).
+- Run python manage.py build_plan_index --llm before the demo so nothing downloads live.

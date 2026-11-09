@@ -3,19 +3,50 @@
 Know what your insurance is actually worth -- reconciling hospital bills
 against plan rules, one line item at a time. A Django web app (Team 10).
 
-## Setup
+## Setup (local, with the AI features)
+
+Needs Python 3.11-3.13, about 4 GB of free disk for model weights and 8 GB of RAM. No GPU and no paid API key.
 
 ```bash
+git clone https://github.com/ayshukla9/10_ClaimSense.git
+cd 10_ClaimSense
 python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+# Optional, Linux: CPU-only torch is much smaller than the default CUDA build
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+pip install -r requirements.txt    # Django + torch, transformers, sentence-transformers (+ optional google-genai)
 
-cp .env.example .env        # then fill in a real SECRET_KEY
+cp .env.example .env               # then set SECRET_KEY (GEMINI_API_KEY is optional)
 python manage.py migrate
-python manage.py runserver  # uses settings/development.py by default
+python manage.py seed_demo_data --accounts --password <choose-a-password>   # synthetic demo plans, bills and logins
+echo "LOCAL_LLM_DEVICE=mps" >> .env       # Mac with Apple silicon: ~70x faster than CPU (use cuda on NVIDIA, or leave unset for CPU)
+python manage.py build_plan_index --llm   # optional: download both models now instead of on the first click
+python manage.py runserver         # uses settings/development.py by default
 ```
 
-Visit `http://127.0.0.1:8000/admin/` to log in (see docs/notes/notes.txt
+**Using the AI features** (log in as a demo patient, e.g. `ecarter1` with the password you chose, or as staff):
+
+| Feature | Where | What it does |
+| --- | --- | --- |
+| Ask about my plan (A9, primary) | **Ask AI** in the nav bar, `/ask/` | Question → semantic search over plan documents → local LLM answer with citations |
+| Explain with AI (A6 + A9) | Any bill → **Explain with AI** | Local LLM explains and flags each charge; each charge shows the closest plan rule |
+| Appeal letter (A6, optional) | Explain page → **Draft appeal letter** | Google Gemini, only if `GEMINI_API_KEY` is set |
+
+**Model download notes.** Nothing is committed: weights download from the Hugging Face Hub into
+`~/.cache/huggingface` the first time they are needed (`Qwen/Qwen2.5-1.5B-Instruct` ≈ 3 GB,
+`sentence-transformers/all-MiniLM-L6-v2` ≈ 90 MB). The retrieval index is saved under `.cache/rag/`
+(git-ignored) and rebuilds itself when a knowledge file changes. Set `HF_TOKEN` in `.env` for faster downloads.
+Without torch (`requirements-web.txt`, `LOCAL_LLM_ENABLED=0`, `RAG_EMBEDDINGS_ENABLED=0`) the pages still work:
+keyword search shows the closest plan sections and line items get the rule checks.
+
+**Tests and evaluation**
+
+```bash
+python manage.py test claims              # offline: models are mocked (seconds)
+python manage.py evaluate_ai --variant both   # real models: the A9 evaluation tables in docs/a9/results/
+```
+
+Visit `http://127.0.0.1:8000/admin/` for the admin (see docs/notes/notes.txt
 or ask a teammate for credentials) and `http://127.0.0.1:8000/bills/render/`
 for the bill list.
 
@@ -65,6 +96,16 @@ ClaimSense/
     ├── views_vega.py          # Vega-Lite page + PNG endpoints
     ├── views_external.py      # HCPCS lookup (external API)
     ├── views_exports.py       # CSV / JSON exports + reports page
+    ├── views_ai.py            # A6/A9: explain, ask-about-my-plan, appeal letter
+    ├── ai/                    # A6/A9 AI code
+    │   ├── retrieval.py       #   chunking, MiniLM embeddings, plan-filtered search
+    │   ├── rag.py             #   question -> retrieval -> local LLM -> checked answer
+    │   ├── local_llm.py       #   Qwen2.5-1.5B-Instruct via transformers (lazy, CPU)
+    │   ├── guardrails.py      #   input cleaning, injection checks, output validation
+    │   ├── prompts.py         #   zero-shot explainer + RAG prompts
+    │   └── gemini_client.py   #   optional appeal letters (API)
+    ├── knowledge/             # A9: plan-benefit documents searched by the RAG feature
+    ├── management/commands/   # seed_demo_data, build_plan_index, evaluate_ai
     ├── urls.py
     └── templates/claims/
 ```
@@ -136,3 +177,12 @@ Bill pages now have **Explain with AI**: a local Hugging Face model (via `transf
 line item, and Google Gemini drafts an appeal letter for the flagged charges. See [README_AI.md](README_AI.md) for
 the workflow, preprocessing and guardrails, [`llm-test/ai_prototype.ipynb`](llm-test/ai_prototype.ipynb) for the
 15-model benchmark and prompting comparison, and the A6 section of `docs/notes/notes.txt` for the cost reflection.
+
+
+## P1-A9: integrated AI (local models)
+
+The primary AI feature is now **Ask about my plan** (`/ask/`): a retrieval-augmented question-answering flow that runs
+entirely on public models on the Django server (sentence-transformers for search, Qwen2.5-1.5B-Instruct for the
+answer). Each line item on the **Explain with AI** page also shows the plan rule that applies to it. Gemini stays an
+optional, secondary feature. See [README_AI.md](README_AI.md) for the workflow, architecture, model rationale,
+evaluation, failure analysis and the before/after improvement, and [docs/a9/demo.md](docs/a9/demo.md) for the demo script.

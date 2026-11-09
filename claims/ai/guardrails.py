@@ -9,12 +9,19 @@ FLAGS = ("ok", "review")
 
 MAX_FIELD_CHARS = 200
 MAX_NOTE_CHARS = 600
+MAX_QUESTION_CHARS = 300  # A9: "Ask about my plan"
+MAX_ANSWER_CHARS = 900
+NOT_FOUND = "I could not find this in your plan documents."
 
 # Phrases that try to talk to the model instead of describing a bill.
+# A9 improvement: the A6 version matched bare words ("disregard", "act as", "ignore the"), which
+# rejected ordinary questions such as "Can my insurer disregard my appeal?". Each pattern now needs
+# an instruction-like target. The system prompts still tell the models to treat input as data.
 _INJECTION = re.compile(
-    r"ignore (all|any|the|previous|prior)|disregard|system prompt|you are now|act as|"
-    r"jailbreak|developer mode|<\s*/?\s*(system|assistant|user)\s*>|\[/?inst\]|"
-    r"reveal (your|the) (prompt|instructions)",
+    r"\b(ignore|disregard|forget|override)\b[^.?!]{0,40}\b(instructions?|prompts?|rules|messages?|guidelines)\b|"
+    r"system prompt|\byou are now\b|\bact as (if you|an? (ai|assistant|chatbot|model|different|unfiltered))|"
+    r"\bpretend (to be|you)\b|jailbreak|developer mode|<\s*/?\s*(system|assistant|user)\s*>|\[/?inst\]|"
+    r"reveal (your|the) (system )?(prompt|instructions)",
     re.IGNORECASE,
 )
 
@@ -105,3 +112,75 @@ def parse_explanation(raw):
     category = next((c for c in CATEGORIES if c.lower() == category.lower()), None) or next(
         (c for c in CATEGORIES if category and category.lower() in c.lower()), "Other")
     return {"category": category, "explanation": explanation, "flag": flag if flag in FLAGS else "review"}
+
+
+# ---------------------------------------------------------------- A9: plan questions and grounded answers
+
+_MONEY = re.compile(r"\$\s?(\d[\d,]*(?:\.\d+)?)")
+_PERCENT = re.compile(r"(\d+(?:\.\d+)?)\s?%")
+_CITATION = re.compile(r"\[(\d+)\]")
+
+
+def check_question(value):
+    """Validate a plan question before any model runs: not empty, not too long, not an injection."""
+    raw = str(value or "")
+    text = clean_text(raw, 10_000)
+    if not text:
+        raise UnsafeInput("Type a question about your plan or bill.")
+    if len(text) > MAX_QUESTION_CHARS:
+        raise UnsafeInput(f"Please keep the question under {MAX_QUESTION_CHARS} characters "
+                          f"(yours has {len(text)}).")
+    if _INJECTION.search(text) or _INJECTION.search(raw):
+        raise UnsafeInput("The question looks like instructions to the AI, not a question about your plan.")
+    return text
+
+
+def _numbers(pattern, text):
+    found = set()
+    for match in pattern.findall(text or ""):
+        try:
+            found.add(float(match.replace(",", "")))
+        except ValueError:
+            pass
+    return found
+
+
+def check_answer(raw, sources):
+    """Validate a retrieval-augmented answer against the sources it was given.
+
+    Returns None when the output is unusable, else a dict with the cleaned text, the citations
+    that point at real sources, and warnings for anything the patient should double-check:
+    missing citations, citations to sources that do not exist, and dollar amounts or
+    percentages that appear in no source (a cheap hallucination check)."""
+    text = unicodedata.normalize("NFKC", raw or "")
+    text = "".join(ch for ch in text if ch in "\n" or unicodedata.category(ch)[0] != "C")
+    text = re.sub(r"<[^>]*>", " ", text).replace("**", "").replace("__", "")
+    text = re.sub(r"^\s*(#+|answer:)\s*", "", text, flags=re.IGNORECASE | re.MULTILINE)
+    text = re.sub(r"\s+", " ", text).strip()[:MAX_ANSWER_CHARS]
+    if len(text) < 3:
+        return None
+    if text.lower().startswith(NOT_FOUND.lower()[:30]):
+        return {"text": NOT_FOUND, "citations": [], "grounded": True, "not_found": True, "warnings": []}
+
+    warnings = []
+    cited = [int(n) for n in _CITATION.findall(text)]
+    invalid = sorted({n for n in cited if not 1 <= n <= len(sources)})
+    if invalid:
+        text = _CITATION.sub(lambda m: m.group(0) if 1 <= int(m.group(1)) <= len(sources) else "", text)
+        text = re.sub(r"\s+([.,;])", r"\1", re.sub(r"\s{2,}", " ", text)).strip()
+        warnings.append("Removed a citation to a source that does not exist: "
+                        + ", ".join(f"[{n}]" for n in invalid) + ".")
+    citations = sorted({n for n in cited if 1 <= n <= len(sources)})
+    if not citations:
+        warnings.append("This answer does not cite your plan documents. Check the sources below before relying on it.")
+
+    joined = " ".join(sources)
+    money = sorted(_numbers(_MONEY, text) - _numbers(_MONEY, joined))
+    pct = sorted(_numbers(_PERCENT, text) - _numbers(_PERCENT, joined))
+    if money or pct:
+        shown = [f"${m:,.2f}".replace(".00", "") for m in money] + [f"{p:g}%" for p in pct]
+        warnings.append("Mentions numbers that are not in your plan documents: " + ", ".join(shown) + ".")
+    if not text:
+        return None
+    return {"text": text, "citations": citations, "grounded": bool(citations), "not_found": False,
+            "warnings": warnings}

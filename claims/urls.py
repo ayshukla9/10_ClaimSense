@@ -21,6 +21,7 @@ urlpatterns = [
     path("bills/<int:pk>/", views.BillDetailView.as_view(), name="bill-detail"),
     path("bills/<int:pk>/explain/", views_ai.bill_explain, name="bill-explain"),
     path("bills/<int:pk>/appeal/", views_ai.bill_appeal, name="bill-appeal"),
+    path("ask/", views_ai.ask_plan, name="ask-plan"),
     path("bills/manual/", views.bill_list_manual, name="bill-list-manual"),
     path("bills/render/", views.bill_list_render, name="bill-list-render"),
     path("bills/cbv-base/", views.BillListBaseView.as_view(), name="bill-list-cbv-base"),

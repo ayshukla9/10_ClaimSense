@@ -4,7 +4,7 @@
 <h2>AI explanation: bill {{ bill.reference_number }}</h2>
 <p>A local Hugging Face model (<code>{{ model_name }}</code>) running on this server explains each charge in plain
     English and flags charges worth a second look. Rule checks (network status, patient share, totals) always
-    run alongside it. The first run downloads the model and can take a minute on a CPU.</p>
+    run alongside it, and each charge shows the closest rule from your plan documents (semantic search). The first run downloads the model and can take a minute on a CPU.</p>
 
 <form method="post">
     {% csrf_token %}
@@ -31,6 +31,7 @@
             <td>{% if info.source == "rules" %}<em>No AI explanation (local model off).</em>{% else %}{{ info.explanation }}{% endif %}
                 {% for issue in info.issues %}<br><small class="ai-issue">&#9888; {{ issue }}</small>{% endfor %}
                 {% if info.source == "fallback" %}<br><small>(model output failed validation; shown the safe fallback)</small>{% endif %}
+                {% if info.plan_rule %}<details class="ai-rule"><summary><small>Plan rule: {{ info.plan_rule.chunk.title }}</small></summary><small>{{ info.plan_rule.chunk.text }}</small></details>{% endif %}
             </td>
             <td><span class="ai-flag ai-flag-{{ info.flag }}">{{ info.flag }}</span></td>
         </tr>
@@ -38,6 +39,7 @@
         </tbody>
     </table>
     {% if bill.line_items.count > max_items %}<p><small>Only the first {{ max_items }} line items are explained.</small></p>{% endif %}
+    <p>Questions about a charge? <a href="{% url 'claims:ask-plan' %}?plan={{ bill.insurance_plan.pk }}">Ask about your plan</a> (answers come from your plan documents).</p>
 
     <h3>Draft an appeal letter (Google Gemini)</h3>
     {% if gemini_ready %}

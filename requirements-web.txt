@@ -12,3 +12,5 @@ requests==2.34.2
 vl-convert-python==1.9.0.post1
 django-allauth[socialaccount]==65.19.7
 google-genai==2.31.0
+# A9: retrieval falls back to keyword search (numpy) when sentence-transformers is absent
+numpy
