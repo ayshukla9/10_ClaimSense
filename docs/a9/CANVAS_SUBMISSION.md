@@ -28,4 +28,4 @@ evaluation, failure analysis, improvements), `docs/a9/demo.md` (demo script).
 
 ## 1v1 demo
 
-Scheduled: **‹day, date, time›** – office hours slot booked at the Box sign-up sheet. *(Team TODO: fill in.)*
+Scheduled: **Thursday, November 12, 2026, 9:00 AM** – office hours slot booked on the Box sign-up sheet.
