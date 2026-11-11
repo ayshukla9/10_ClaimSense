@@ -1,0 +1,11 @@
+{% comment %}One form field with label, help text and errors linked for screen readers.{% endcomment %}
+{% if field.is_hidden %}{{ field }}{% elif field.field.widget.input_type == "checkbox" %}
+<label class="auth-check">{{ field }} {{ field.label }}</label>
+{% else %}
+<div class="auth-field{% if field.errors %} has-error{% endif %}">
+    {{ field.label_tag }}
+    {{ field }}
+    {% if field.help_text and not hide_help %}<small class="muted auth-help">{{ field.help_text|safe }}</small>{% endif %}
+    {% for e in field.errors %}<small class="auth-error" role="alert">{{ e }}</small>{% endfor %}
+</div>
+{% endif %}

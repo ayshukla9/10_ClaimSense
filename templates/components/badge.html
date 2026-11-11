@@ -1,0 +1,5 @@
+{% comment %}
+Status badge. Always pair color with text.
+Usage: {% include "components/badge.html" with tone="danger" text="Out of network" %}
+tone: ok | warn | danger | info (omit for neutral)
+{% endcomment %}<span class="badge{% if tone %} badge-{{ tone }}{% endif %}">{{ text }}</span>

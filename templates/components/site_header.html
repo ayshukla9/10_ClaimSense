@@ -1,0 +1,28 @@
+{% with current=request.resolver_match.url_name %}
+<header class="site-header">
+    <div class="site-header__inner">
+        <a class="brand" href="{% url 'claims:home' %}">Claim<span>Sense</span></a>
+        <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+        <nav class="site-nav" id="site-nav" aria-label="Main">
+            <div class="site-nav__links">
+                <a href="{% url 'claims:home' %}" {% if current == 'home' %}aria-current="page"{% endif %}>{% if user.is_authenticated %}Dashboard{% else %}Home{% endif %}</a>
+                {% if user.is_authenticated %}
+                <a href="{% url 'claims:bill-list-render' %}" {% if current == 'bill-list-render' or current == 'bill-detail' or current == 'bill-explain' or current == 'bill-appeal' %}aria-current="page"{% endif %}>Bills</a>
+                <a href="{% url 'claims:ask-plan' %}" {% if current == 'ask-plan' %}aria-current="page"{% endif %}>Ask AI</a>
+                <a href="{% url 'claims:reports' %}" {% if current == 'reports' or current == 'procedure-lookup' %}aria-current="page"{% endif %}>Insights</a>
+                {% if user.is_staff %}<a href="{% url 'claims:bill-manage' %}" {% if current == 'bill-manage' %}aria-current="page"{% endif %}>Manage</a>{% endif %}
+                {% endif %}
+            </div>
+            <div class="site-nav__account">
+                {% if user.is_authenticated %}
+                <span class="site-nav__user">{{ user.get_full_name|default:user.username }}</span>
+                <form method="post" action="{% url 'account_logout' %}">{% csrf_token %}<button type="submit" class="btn btn-on-dark">Log out</button></form>
+                {% else %}
+                <a href="{% url 'account_login' %}" {% if current == 'account_login' %}aria-current="page"{% endif %}>Log in</a>
+                <a class="btn btn-secondary" href="{% url 'account_signup' %}">Sign up</a>
+                {% endif %}
+            </div>
+        </nav>
+    </div>
+</header>
+{% endwith %}

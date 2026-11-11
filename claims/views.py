@@ -16,6 +16,7 @@ from django.views.generic import DetailView, ListView, TemplateView
 
 from .models import Bill
 from .access import visible_bills
+from .bill_insights import bill_rows, dashboard_stats, filter_rows, line_item_flags
 
 
 def bill_list_manual(request):
@@ -42,8 +43,20 @@ def bill_list_render(request):
     lets render() handle template loading + HttpResponse wrapping.
     """
     bills = visible_bills(request.user)
+    filters = {
+        "q": request.GET.get("q", "").strip()[:100],
+        "network": request.GET.get("network", ""),
+        "flagged": request.GET.get("flagged") == "1",
+        "sort": request.GET.get("sort", "date"),
+    }
+    all_rows = bill_rows(bills)
+    rows = filter_rows(all_rows, **filters)
     context = {
         "bills": bills,
+        "rows": rows,
+        "total_count": len(all_rows),
+        "filters": filters,
+        "filtering": bool(filters["q"] or filters["network"] or filters["flagged"]),
         "view_label": "View 2: render() shortcut",
     }
     return render(request, "claims/bill_list.html", context)
@@ -90,9 +103,20 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        if self.request.user.is_authenticated:
-            ctx["recent_bills"] = visible_bills(self.request.user).select_related("patient", "provider")[:5]
-            ctx["total_bills"] = visible_bills(self.request.user).count()
+        user = self.request.user
+        if user.is_authenticated:
+            from .views_ai import EXAMPLE_QUESTIONS, _plans_for
+
+            rows = bill_rows(visible_bills(user))
+            ctx["rows"] = rows
+            ctx["stats"] = dashboard_stats(rows)
+            ctx["attention"] = sorted((r for r in rows if r.needs_review), key=lambda r: r.owed, reverse=True)[:4]
+            ctx["recent_rows"] = rows[:5]  # Bill.Meta.ordering is newest first
+            ctx["total_bills"] = len(rows)
+            plans = _plans_for(user)
+            ctx["plan"] = plans[0] if len(plans) == 1 else None
+            ctx["example_questions"] = EXAMPLE_QUESTIONS[:3]
+            ctx["display_name"] = getattr(getattr(user, "patient_record", None), "name", "") or user.get_full_name() or user.username
         return ctx
 
 
@@ -105,9 +129,16 @@ class BillDetailView(DetailView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["line_items"] = self.object.line_items.all()
+        ctx["item_flags"] = line_item_flags(ctx["line_items"])
+        ctx["flagged_count"] = sum(1 for _, flags in ctx["item_flags"] if flags)
         ctx["totals"] = self.object.line_items.aggregate(
             charged=Sum("charged_amount"),
             covered=Sum("estimated_covered_amount"),
             patient=Sum("estimated_patient_responsibility"),
         )
         return ctx
+
+
+# ---- UI plan Phase 4: one page linking every course-assignment view and API ----
+class DeveloperView(TemplateView):
+    template_name = "claims/developer.html"

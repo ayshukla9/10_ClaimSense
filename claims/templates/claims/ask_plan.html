@@ -1,75 +1,98 @@
 {% extends "base.html" %}
 {% block title %}Ask about my plan -- ClaimSense{% endblock %}
 {% block content %}
-<h2>Ask about my plan</h2>
-<p>Ask a question about your coverage. ClaimSense searches your plan documents with a local embedding model
-    (<code>{{ embedding_model }}</code>), then a local language model (<code>{{ model_name }}</code>) answers
-    using only the sections it found and cites them. Nothing leaves this server. Answers take a few
-    seconds on an Apple-silicon GPU (<code>LOCAL_LLM_DEVICE=mps</code>) and can take minutes on a plain CPU.</p>
+<div class="page-header">
+    <h1>Ask about your plan</h1>
+    <p>Answers come only from your plan documents, with the sources shown. Nothing leaves this server.</p>
+</div>
 
-<form method="post" class="card">
+<div class="ask-layout">
+<div class="ask-main">
+<form method="post" class="card ask-form" data-loading="Searching your plan…">
     {% csrf_token %}
     {% if plans|length > 1 %}
-    <p><label for="plan">Plan</label>
+    <p><label for="plan">Plan</label><br>
         <select id="plan" name="plan">
             {% for p in plans %}<option value="{{ p.pk }}" {% if p == plan %}selected{% endif %}>{{ p.name }} ({{ p.plan_type }})</option>{% endfor %}
         </select></p>
     {% elif plan %}
     <input type="hidden" name="plan" value="{{ plan.pk }}">
-    <p>Plan: <strong>{{ plan.name }}</strong> ({{ plan.plan_type }})</p>
+    <p class="ask-form__plan"><span class="muted">Your plan</span> <span class="badge badge-info">{{ plan.name }} &middot; {{ plan.plan_type }}</span></p>
     {% else %}
-    <p><em>Your account is not linked to a plan yet, so only general rules (emergencies, appeals, terms) are searched.</em></p>
+    <div class="callout callout-info"><p>Your account isn't linked to a plan yet, so only general rules (emergencies, appeals, terms) are searched.</p></div>
     {% endif %}
-    <p><label for="question">Your question (up to {{ max_chars }} characters)</label><br>
-        <textarea id="question" name="question" rows="3" cols="80" maxlength="{{ max_chars }}" required
-                  placeholder="e.g. Can I see a specialist outside my network?">{{ question }}</textarea></p>
-    <button type="submit">Ask</button>
-    <details><summary>Example questions</summary>
-        <ul>{% for q in examples %}<li>{{ q }}</li>{% endfor %}</ul>
-    </details>
+    <label for="question">Your question</label>
+    <textarea id="question" name="question" rows="3" maxlength="{{ max_chars }}" required data-char-count
+              placeholder="e.g. Can I see a specialist outside my network?">{{ question }}</textarea>
+    <div class="ask-form__foot">
+        <small class="muted" data-char-count-for="question">Up to {{ max_chars }} characters</small>
+        <button type="submit">Ask</button>
+    </div>
 </form>
 
 {% if error %}
-<div class="card ai-notice" role="alert"><strong>Could not answer.</strong> {{ error }}</div>
+<div class="callout callout-danger" role="alert"><p><strong>Could not answer.</strong> {{ error }}</p></div>
 {% endif %}
 
 {% if answer %}
-<div class="card">
-    <h3>Answer</h3>
+<section class="card answer-card" aria-labelledby="answer-heading">
+    <p class="answer-card__q"><span class="muted">You asked</span><br>{{ answer.question|default:question }}</p>
+    <h2 id="answer-heading">Answer</h2>
     {% if answer.status == "answered" %}
-        <p>{{ answer.text }}</p>
+        <p class="answer-card__text">{{ answer.text }}</p>
     {% elif answer.status == "not_found" %}
-        <p>{{ answer.text }} The closest sections are listed below.</p>
+        <p class="answer-card__text">{{ answer.text }} The closest sections are listed below.</p>
     {% elif answer.status == "no_results" %}
-        <p>No section of your plan documents matches this question closely enough (best match score
-            {{ answer.best_score }}), so the AI was not asked to guess. Try rephrasing, or ask about coverage,
-            costs, networks, emergencies or appeals.</p>
+        <p class="answer-card__text">Nothing in your plan documents matches this question closely enough, so we didn't ask the AI to guess.
+            Try rephrasing, or ask about coverage, costs, networks, emergencies or appeals.</p>
     {% elif answer.status == "model_off" %}
-        <p><em>The local language model is off on this server, so here are the most relevant plan sections instead.</em></p>
+        <p class="answer-card__text"><em>The local language model is off on this server, so here are the most relevant plan sections instead.</em></p>
     {% else %}
-        <p>{{ answer.text }}</p>
+        <p class="answer-card__text">{{ answer.text }}</p>
     {% endif %}
-    {% for w in answer.warnings %}<p><small class="ai-issue">&#9888; {{ w }}</small></p>{% endfor %}
-    {% for n in answer.notes %}<p><small>{{ n }}</small></p>{% endfor %}
-    <p><small>Retrieval {{ answer.retrieval_ms }} ms ({{ answer.backend }}){% if answer.llm_called %} &middot; generation {{ answer.generation_s }} s{% endif %}{% if answer.cached %} &middot; cached answer{% endif %} &middot; total {{ answer.total_s }} s</small></p>
-</div>
+    {% for w in answer.warnings %}<div class="callout callout-warn"><p class="ai-issue">{{ w }}</p></div>{% endfor %}
+    {% if answer.citations %}<p class="answer-card__cites"><small class="muted">Based on</small>
+        {% for c in answer.citations %}<a class="cite" href="#source-{{ c }}">[{{ c }}]</a>{% endfor %}</p>{% endif %}
+    <details class="answer-card__tech">
+        <summary><small>Details</small></summary>
+        {% for n in answer.notes %}<p><small class="muted">{{ n }}</small></p>{% endfor %}
+        <p><small class="muted">Retrieval {{ answer.retrieval_ms }} ms ({{ answer.backend }}{% if answer.status == "no_results" %}, best match {{ answer.best_score }}{% endif %}){% if answer.llm_called %} &middot; generation {{ answer.generation_s }} s{% endif %}{% if answer.cached %} &middot; cached answer{% endif %} &middot; total {{ answer.total_s }} s
+            &middot; models: <code>{{ embedding_model }}</code>, <code>{{ model_name }}</code></small></p>
+    </details>
+</section>
 
 {% if answer.hits %}
-<h3>Sources</h3>
-<table>
-    <thead><tr><th>#</th><th>Section</th><th>Applies to</th><th>Match</th></tr></thead>
-    <tbody>
+<section aria-labelledby="sources-heading">
+    <h2 id="sources-heading">Sources</h2>
+    <ol class="source-list">
     {% for hit in answer.hits %}
-    <tr>
-        <td>[{{ forloop.counter }}]{% if forloop.counter in answer.citations %} &#10003;{% endif %}</td>
-        <td><details><summary>{{ hit.chunk.title }}</summary><p>{{ hit.chunk.text }}</p></details></td>
-        <td>{{ hit.chunk.scope_label }}</td>
-        <td>{{ hit.score }}</td>
-    </tr>
+        <li class="source" id="source-{{ forloop.counter }}">
+            <details>
+                <summary>
+                    <span class="source__num">[{{ forloop.counter }}]</span>
+                    <span class="source__title">{{ hit.chunk.title }}</span>
+                    <span class="source__meta">
+                        {% if forloop.counter in answer.citations %}<span class="badge badge-ok">Cited</span>{% endif %}
+                        <span class="badge">{{ hit.chunk.scope_label }}</span>
+                        <span class="visually-hidden">match {{ hit.score }}</span>
+                    </span>
+                </summary>
+                <p>{{ hit.chunk.text }}</p>
+            </details>
+        </li>
     {% endfor %}
-    </tbody>
-</table>
-<p><small>&#10003; = cited in the answer. Plan documents are simplified summaries for the ClaimSense demo plans, not legal advice.</small></p>
+    </ol>
+    <p class="muted"><small>Plan documents are simplified summaries for the ClaimSense demo plans, not legal advice.</small></p>
+</section>
 {% endif %}
 {% endif %}
+</div>
+
+<aside class="ask-side card" aria-labelledby="examples-heading">
+    <h2 id="examples-heading">Try asking</h2>
+    <ul class="chip-list">
+        {% for q in examples %}<li><a class="chip" href="?q={{ q|urlencode }}{% if plan %}&amp;plan={{ plan.pk }}{% endif %}" data-fill-question="{{ q }}">{{ q }}</a></li>{% endfor %}
+    </ul>
+</aside>
+</div>
 {% endblock %}

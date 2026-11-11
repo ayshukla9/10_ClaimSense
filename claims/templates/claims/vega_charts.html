@@ -2,32 +2,32 @@
 {% load static %}
 {% block title %}Vega-Lite Charts -- ClaimSense{% endblock %}
 {% block content %}
-<h2>Vega-Lite Charts</h2>
-<p>Charts pull live data from our database APIs.</p>
-<h3>Public insurance plan catalogue</h3>
-<div id="catalogue" class="vega-chart"></div>
+<p><small><a href="{% url 'claims:developer' %}">Developer</a> / Vega-Lite</small></p>
+<div class="page-header"><h1>Vega-Lite charts</h1><p>Charts pull live data from our database APIs.</p></div>
+<h2>Public insurance plan catalogue</h2>
+<div id="catalogue" class="vega-chart" tabindex="0" role="region" aria-label="Plan catalogue chart"></div>
 <p><a href="{% url 'claims:public-plan-types' %}">Public JSON data</a> |
 <a href="{% static 'vega-lite/plan_types.txt' %}">A5 Vega-Lite .txt spec</a></p>
 
-<h3>Total charged per provider</h3>
-<div id="chart1" class="vega-chart"></div>
+<h2>Total charged per provider</h2>
+<div id="chart1" class="vega-chart" tabindex="0" role="region" aria-label="Total charged per provider chart"></div>
 <p class="chart-links">
     Data: <a href="{% url 'claims:api-summary-providers' %}">{% url 'claims:api-summary-providers' %}</a> |
     <a href="{% static 'vega-lite/charged_per_provider.vl.json' %}">Vega-Lite spec</a> |
     <a href="{% url 'claims:vega-chart-png' 'chart1' %}">PNG</a>
 </p>
 
-<h3>Charges over time</h3>
-<div id="chart2" class="vega-chart"></div>
+<h2>Charges over time</h2>
+<div id="chart2" class="vega-chart" tabindex="0" role="region" aria-label="Charges over time chart"></div>
 <p class="chart-links">
     Data: <a href="{% url 'claims:api-summary-bills' %}">{% url 'claims:api-summary-bills' %}</a> |
     <a href="{% static 'vega-lite/charges_over_time.vl.json' %}">Vega-Lite spec</a> |
     <a href="{% url 'claims:vega-chart-png' 'chart2' %}">PNG</a>
 </p>
 
-<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
-<script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
-<script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega@5.30.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5.21.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6.26.0"></script>
 <script>
     const charts = {
         "#catalogue": "{% static 'vega-lite/plan_types.txt' %}",
@@ -35,7 +35,11 @@
         "#chart2": "{% static 'vega-lite/charges_over_time.vl.json' %}",
     };
     for (const [target, specUrl] of Object.entries(charts)) {
-        vegaEmbed(target, specUrl, {actions: {editor: false}}).catch((err) => {
+        vegaEmbed(target, specUrl, {actions: {editor: false}}).then(() => {
+            // vega-embed's export menu has an unlabelled <summary>; name it for screen readers.
+            const menu = document.querySelector(target + " details > summary");
+            if (menu) menu.setAttribute("aria-label", "Export chart");
+        }).catch((err) => {
             document.querySelector(target).textContent = "Chart failed to load: " + err.message;
         });
     }

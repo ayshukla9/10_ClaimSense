@@ -3,6 +3,47 @@
 {% block title %}Bills -- ClaimSense{% endblock %}
 
 {% block content %}
-<h2>Bills</h2>
+<div class="page-header">
+    <h1>Bills</h1>
+    {% if filters %}<p>Every bill linked to your account, with what you owe and anything worth a second look.</p>{% endif %}
+</div>
+
+{% if filters %}
+<form method="get" class="filter-bar" role="search" aria-label="Filter bills">
+    <div class="field field--grow">
+        <label for="bill-q">Search</label>
+        <input type="search" id="bill-q" name="q" value="{{ filters.q }}" placeholder="Provider, reference #, patient or charge">
+    </div>
+    <div class="field">
+        <label for="bill-network">Network</label>
+        <select id="bill-network" name="network">
+            <option value="">All providers</option>
+            <option value="IN" {% if filters.network == "IN" %}selected{% endif %}>In network</option>
+            <option value="OUT" {% if filters.network == "OUT" %}selected{% endif %}>Out of network</option>
+        </select>
+    </div>
+    <div class="field">
+        <label for="bill-sort">Sort by</label>
+        <select id="bill-sort" name="sort">
+            <option value="date" {% if filters.sort == "date" %}selected{% endif %}>Newest first</option>
+            <option value="oldest" {% if filters.sort == "oldest" %}selected{% endif %}>Oldest first</option>
+            <option value="owed" {% if filters.sort == "owed" %}selected{% endif %}>You owe (highest)</option>
+        </select>
+    </div>
+    <label class="check"><input type="checkbox" name="flagged" value="1" {% if filters.flagged %}checked{% endif %}> Needs review only</label>
+    <div class="btn-row" style="margin:0">
+        <button type="submit">Apply</button>
+        {% if filtering or filters.sort != "date" %}<a class="btn btn-ghost" href="{% url 'claims:bill-list-render' %}">Clear</a>{% endif %}
+    </div>
+</form>
+<p class="result-count" role="status">{% if filtering %}{{ rows|length }} of {{ total_count }} bill{{ total_count|pluralize }} match{% else %}{{ total_count }} bill{{ total_count|pluralize }}{% endif %}</p>
+{% if filtering %}
+    {% include "claims/_bill_rows_table.html" with empty_text="No bills match these filters." %}
+{% else %}
+    {% include "claims/_bill_rows_table.html" with empty_text="No bills are linked to your account yet." %}
+{% endif %}
+{% else %}
 {% include "claims/_bill_table.html" %}
+{% endif %}
+{% if view_label %}<p class="muted"><small>{{ view_label }}</small></p>{% endif %}
 {% endblock %}

@@ -1,29 +1,57 @@
 {% extends "base.html" %}
+{% load money %}
 {% block title %}Bill {{ bill.reference_number }} -- ClaimSense{% endblock %}
 {% block content %}
-<h2>Bill {{ bill.reference_number }}</h2>
-<div class="card">
-    <p><strong>Patient:</strong> {{ bill.patient.name }}<br>
-    <strong>Provider:</strong> {{ bill.provider.name }} ({{ bill.provider.get_network_status_display }})<br>
-    <strong>Plan:</strong> {{ bill.insurance_plan }}<br>
-    <strong>Date:</strong> {{ bill.bill_date }}</p>
+<p><small><a href="{% url 'claims:bill-list-render' %}">Bills</a> / {{ bill.reference_number }}</small></p>
+<div class="page-header">
+    <h1>{{ bill.provider.name }}</h1>
+    <p>Bill {{ bill.reference_number }} &middot; {{ bill.bill_date }}</p>
 </div>
-<h3>Line items</h3>
+<div class="card">
+    <dl class="meta-list">
+        <div><dt>Patient</dt><dd>{{ bill.patient.name }}</dd></div>
+        <div><dt>Provider network</dt><dd>
+            {% if bill.provider.network_status == "OUT" %}{% include "components/badge.html" with tone="danger" text=bill.provider.get_network_status_display %}
+            {% else %}{% include "components/badge.html" with tone="ok" text=bill.provider.get_network_status_display %}{% endif %}</dd></div>
+        <div><dt>Plan</dt><dd>{{ bill.insurance_plan }}</dd></div>
+        <div><dt>Date of service</dt><dd>{{ bill.bill_date }}</dd></div>
+    </dl>
+</div>
+{% if flagged_count %}
+<div class="callout callout-warn bill-callout">
+    <p><strong>{{ flagged_count }} charge{{ flagged_count|pluralize }} worth a second look.</strong> See the flags below, or let AI explain each charge and draft an appeal.</p>
+    <a class="btn" href="{% url 'claims:bill-explain' bill.pk %}">Review with AI</a>
+</div>
+{% endif %}
+{% if line_items %}
+<div class="kpi-grid">
+    {% include "components/kpi_tile.html" with label="Charged" value=totals.charged|money %}
+    {% include "components/kpi_tile.html" with label="Covered by plan" value=totals.covered|money %}
+    {% include "components/kpi_tile.html" with label="You owe" value=totals.patient|money hero=True %}
+</div>
+{% endif %}
+<h2>Line items</h2>
+<div class="table-wrap">
 <table>
-    <thead><tr><th>#</th><th>Description</th><th>Charged</th><th>Covered</th><th>You owe</th></tr></thead>
+    <thead><tr><th scope="col">#</th><th scope="col">Description</th><th scope="col" class="num">Charged</th><th scope="col" class="num">Covered</th><th scope="col" class="num">You owe</th><th scope="col">Flags</th></tr></thead>
     <tbody>
-        {% for li in line_items %}
-        <tr><td>{{ li.line_number }}</td><td>{{ li.description }}</td>
-            <td>${{ li.charged_amount }}</td><td>${{ li.estimated_covered_amount }}</td>
-            <td>${{ li.estimated_patient_responsibility }}</td></tr>
+        {% for li, flags in item_flags %}
+        <tr><td>{{ li.line_number }}</td><td>{{ li.description }}<br><small><a href="{% url 'claims:procedure-lookup' %}?q={{ li.description|urlencode }}">Look up typical cost</a></small></td>
+            <td class="num">{{ li.charged_amount|money }}</td><td class="num">{{ li.estimated_covered_amount|money }}</td>
+            <td class="num"><strong>{{ li.estimated_patient_responsibility|money }}</strong></td>
+            <td><div class="flag-cell">{% for f in flags %}{% include "components/badge.html" with tone="warn" text=f %}{% empty %}{% include "components/badge.html" with tone="ok" text="OK" %}{% endfor %}</div></td></tr>
         {% empty %}
-        <tr><td colspan="5"><div class="empty-state">No line items.</div></td></tr>
+        <tr><td colspan="6"><div class="empty-state">No line items.</div></td></tr>
         {% endfor %}
     </tbody>
     {% if line_items %}
-    <tfoot><tr><th colspan="2">Totals</th><th>${{ totals.charged }}</th><th>${{ totals.covered }}</th><th>${{ totals.patient }}</th></tr></tfoot>
+    <tfoot><tr><th colspan="2" scope="row">Totals</th><td class="num">{{ totals.charged|money }}</td><td class="num">{{ totals.covered|money }}</td><td class="num">{{ totals.patient|money }}</td><td></td></tr></tfoot>
     {% endif %}
 </table>
-{% if line_items %}<p><a class="btn" href="{% url 'claims:bill-explain' bill.pk %}">Explain with AI</a></p>{% endif %}
-<p><a href="{% url 'claims:home' %}">&larr; Back home</a></p>
+</div>
+<div class="btn-row">
+    {% if line_items %}<a class="btn{% if flagged_count %} btn-secondary{% endif %}" href="{% url 'claims:bill-explain' bill.pk %}">Explain with AI</a>
+    <a class="btn btn-secondary" href="{% url 'claims:ask-plan' %}?plan={{ bill.insurance_plan.pk }}">Ask about my plan</a>{% endif %}
+    <a class="btn btn-ghost" href="{% url 'claims:bill-list-render' %}">&larr; All bills</a>
+</div>
 {% endblock %}

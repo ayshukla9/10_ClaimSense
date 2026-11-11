@@ -31,6 +31,7 @@ urlpatterns = [
     path("bills/summary/", views_search.bill_summary, name="bill-summary"),
     path("bills/manage/", views_forms.BillManageView.as_view(), name="bill-manage"),
     path("procedures/", views_external.procedure_lookup, name="procedure-lookup"),
+    path("developer/", views.DeveloperView.as_view(), name="developer"),
     # Reports and exports
     path("reports/", views_exports.reports, name="reports"),
     path("exports/bills.csv", views_exports.export_bills_csv, name="export-bills-csv"),

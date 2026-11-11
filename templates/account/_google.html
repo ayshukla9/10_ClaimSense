@@ -1,8 +1,10 @@
 {% load socialaccount %}
 {% if google_oauth_enabled %}
-<form method="post" action="{% provider_login_url 'google' process='login' %}">{% csrf_token %}
-<button type="submit">Continue with Google</button></form>
+<form method="post" action="{% provider_login_url 'google' process='login' %}" class="auth-google">{% csrf_token %}
+<button type="submit" class="btn-secondary auth-submit"><span class="google-mark" aria-hidden="true">G</span> Continue with Google</button></form>
 {% else %}
-<button type="button" disabled>Continue with Google</button>
-<p>Google login is awaiting administrator OAuth configuration.</p>
+<div class="auth-google">
+<button type="button" class="btn-secondary auth-submit" disabled><span class="google-mark" aria-hidden="true">G</span> Continue with Google</button>
+<p class="muted"><small>Google login is awaiting administrator OAuth configuration.</small></p>
+</div>
 {% endif %}

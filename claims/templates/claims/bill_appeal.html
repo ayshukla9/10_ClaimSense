@@ -1,17 +1,36 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block title %}Appeal letter {{ bill.reference_number }} -- ClaimSense{% endblock %}
 {% block content %}
-<h2>Appeal letter: bill {{ bill.reference_number }}</h2>
+<p><small><a href="{% url 'claims:bill-list-render' %}">Bills</a> / <a href="{{ bill.get_absolute_url }}">{{ bill.reference_number }}</a> / Appeal letter</small></p>
+<div class="page-header">
+    <h1>Appeal letter</h1>
+    <p>{{ bill.provider.name }} &middot; bill {{ bill.reference_number }}</p>
+</div>
 {% if error %}
-<div class="empty-state"><strong>{{ error }}</strong></div>
+<div class="callout callout-danger" role="alert"><p><strong>We couldn't draft the letter.</strong> {{ error }}</p></div>
 {% else %}
-<p>Drafted by Google Gemini (<code>{{ gemini_model }}</code>). Check every detail before sending it; AI can make mistakes.</p>
-<pre class="card ai-letter">{{ letter }}</pre>
-<details>
-    <summary>What was sent to Gemini</summary>
-    <pre class="card ai-letter">{{ prompt }}</pre>
+<div class="callout callout-warn">
+    <p><strong>Review before you send.</strong> Fill in the highlighted placeholders and check every detail. AI can make mistakes.</p>
+</div>
+<div class="letter">
+    <div class="letter__toolbar">
+        <span class="muted"><small>Draft</small></span>
+        <div class="btn-row" style="margin:0">
+            <button type="button" class="btn-secondary" data-copy-target="#letter-text">Copy</button>
+            <button type="button" class="btn-secondary" data-download-target="#letter-text" data-filename="appeal-{{ bill.reference_number|slugify }}.txt">Download .txt</button>
+        </div>
+    </div>
+    <pre class="ai-letter letter__paper" id="letter-text">{{ letter|highlight_placeholders }}</pre>
+</div>
+<details class="disclosure">
+    <summary>What was sent to the AI</summary>
+    <p class="muted"><small>Drafted by Google Gemini (<code>{{ gemini_model }}</code>). Your name, email and NetID are never included.</small></p>
+    <pre class="ai-letter">{{ prompt }}</pre>
 </details>
 {% endif %}
-<p><a href="{% url 'claims:bill-explain' bill.pk %}">&larr; Back to AI explanation</a> |
-    <a href="{{ bill.get_absolute_url }}">Back to bill</a></p>
+<div class="btn-row">
+    <a class="btn btn-ghost" href="{% url 'claims:bill-explain' bill.pk %}">&larr; Back to AI review</a>
+    <a class="btn btn-ghost" href="{{ bill.get_absolute_url }}">Back to bill</a>
+</div>
 {% endblock %}

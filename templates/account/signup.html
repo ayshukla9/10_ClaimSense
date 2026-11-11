@@ -1,12 +1,20 @@
 {% extends "base.html" %}
 {% block title %}Sign up — ClaimSense{% endblock %}
 {% block content %}
-<h2>Sign up</h2>
-<form method="post" action="{% url 'account_signup' %}">
-{% csrf_token %}{{ form.as_p }}
-{% if redirect_field_value %}<input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">{% endif %}
-<button type="submit">Sign up</button>
-</form>
-{% include "account/_google.html" %}
-<p><a href="{% url 'account_login' %}">Already have an account? Log in</a></p>
+<div class="auth-wrap">
+    <div class="card auth-card">
+        <h1>Create your account</h1>
+        <p class="muted">Your bills appear once an administrator links your records to this account.</p>
+        {% include "account/_google.html" %}
+        <div class="auth-divider"><span>or with a username</span></div>
+        <form method="post" action="{% url 'account_signup' %}" data-loading="Creating account…">
+            {% csrf_token %}
+            {% if form.non_field_errors %}<div class="callout callout-danger" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+            {% for field in form %}{% include "account/_field.html" %}{% endfor %}
+            {% if redirect_field_value %}<input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">{% endif %}
+            <button type="submit" class="auth-submit">Sign up</button>
+        </form>
+        <p class="auth-switch">Already have an account? <a href="{% url 'account_login' %}">Log in</a></p>
+    </div>
+</div>
 {% endblock %}

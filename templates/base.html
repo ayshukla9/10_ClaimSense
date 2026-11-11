@@ -1,42 +1,23 @@
-{% load static %}
-<!DOCTYPE html>
+{% load static %}<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}ClaimSense{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=4">
+    <script>document.documentElement.classList.add("js");</script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=12">
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <header>
-        <h1>Claim<span>Sense</span></h1>
-        {% if view_label %}<p>{{ view_label }}</p>{% endif %}
-    </header>
-    <nav>
-        <a href="{% url 'claims:home' %}">Home</a>
-        {% if user.is_authenticated %}
-        <a href="{% url 'claims:bill-list-render' %}">All Bills</a>
-        <a href="{% url 'claims:bill-search' %}">Search</a>
-        <a href="{% url 'claims:bill-lookup' %}">Lookup</a>
-        <a href="{% url 'claims:bill-summary' %}">Summary</a>
-        <a href="{% url 'claims:reports' %}">Reports</a>
-        <a href="{% url 'claims:charts' %}">Charts</a>
-        <a href="{% url 'claims:vega-charts' %}">Vega-Lite</a>
-        <a href="{% url 'claims:procedure-lookup' %}">Procedures</a>
-        <a href="{% url 'claims:ask-plan' %}">Ask AI</a>
-        {% if user.is_staff %}<a href="{% url 'claims:bill-manage' %}">Manage</a>{% endif %}
-        <a href="{% url 'claims:api-bills' %}">API</a>
-        {% endif %}
-        {% if user.is_authenticated %}
-        <form method="post" action="{% url 'account_logout' %}" style="display:inline">{% csrf_token %}<button type="submit">Log out</button></form>
-        {% else %}
-        <a href="{% url 'account_login' %}">Log in</a>
-        <a href="{% url 'account_signup' %}">Sign up</a>
-        {% endif %}
-    </nav>
-    <main>
-        {% for message in messages %}<p role="status">{{ message }}</p>{% endfor %}
+    <a class="skip-link" href="#content">Skip to content</a>
+    {% include "components/site_header.html" %}
+    <main id="content" tabindex="-1">
+        {% include "components/flash.html" %}
         {% block content %}{% endblock %}
     </main>
+    {% include "components/site_footer.html" %}
+    <script src="{% static 'js/nav.js' %}?v=1" defer></script>
+    <script src="{% static 'js/ui.js' %}?v=2" defer></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>
