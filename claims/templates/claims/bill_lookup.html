@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Lookup -- ClaimSense{% endblock %}
 {% block content %}
-<h2>Look up bills by patient email (POST)</h2>
-<p>Email is sensitive, so it is sent in the request body, never in the URL, history, or logs.</p>
-<form method="post">{% csrf_token %}
-    <input name="email" type="email" value="{{ email }}" placeholder="patient email" required>
+<p><small><a href="{% url 'claims:developer' %}">Developer</a> / Lookup</small></p>
+<div class="page-header"><h1>Look up bills by patient email (POST)</h1>
+<p>Email is sensitive, so it is sent in the request body, never in the URL, history, or logs.</p></div>
+<form method="post" class="filter-bar">{% csrf_token %}
+    <div class="field field--grow"><label for="email">Patient email</label>
+    <input id="email" name="email" type="email" value="{{ email }}" placeholder="patient email" required></div>
     <button>Find bills</button>
 </form>
 {% if bills is not None %}{% include "claims/_bill_table.html" %}{% endif %}

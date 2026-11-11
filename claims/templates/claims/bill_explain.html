@@ -1,57 +1,119 @@
 {% extends "base.html" %}
-{% block title %}Explain bill {{ bill.reference_number }} -- ClaimSense{% endblock %}
+{% load money %}
+{% block title %}AI review: bill {{ bill.reference_number }} -- ClaimSense{% endblock %}
 {% block content %}
-<h2>AI explanation: bill {{ bill.reference_number }}</h2>
-<p>A local Hugging Face model (<code>{{ model_name }}</code>) running on this server explains each charge in plain
-    English and flags charges worth a second look. Rule checks (network status, patient share, totals) always
-    run alongside it, and each charge shows the closest rule from your plan documents (semantic search). The first run downloads the model and can take a minute on a CPU.</p>
+<p><small><a href="{% url 'claims:bill-list-render' %}">Bills</a> / <a href="{{ bill.get_absolute_url }}">{{ bill.reference_number }}</a> / AI review</small></p>
+<div class="page-header">
+    <h1>AI review: {{ bill.provider.name }}</h1>
+    <p>Each charge explained in plain English, checked against your plan, and flagged if it's worth questioning.</p>
+</div>
 
-<form method="post">
-    {% csrf_token %}
-    <button type="submit">{% if rows %}Run again{% else %}Explain this bill{% endif %}</button>
-    <a href="{{ bill.get_absolute_url }}">Back to bill</a>
-</form>
+{% if not rows %}
+<div class="card run-card">
+    <div>
+        <h2>Ready to review bill {{ bill.reference_number }}</h2>
+        <p class="muted">We'll explain each charge, run the rule checks (network status, your share, totals) and match it to the closest rule in your plan documents.</p>
+    </div>
+    <form method="post" data-loading="Reviewing charges… this can take up to a minute">
+        {% csrf_token %}
+        <button type="submit">Explain this bill</button>
+    </form>
+</div>
+{% endif %}
 
 {% if notice %}
-<div class="card ai-notice"><strong>AI explanations are off on this server.</strong> {{ notice }}
-    The automatic checks below still run, and appeal letters still work.</div>
+<div class="callout callout-warn" role="status">
+    <div>
+        <p><strong>AI explanations are off on this server.</strong> The automatic checks below still run, and appeal letters still work.</p>
+        <details><summary><small>Technical details</small></summary><p><small>{{ notice }}</small></p></details>
+    </div>
+</div>
 {% endif %}
-{% if rows %}
-<form method="post" action="{% url 'claims:bill-appeal' bill.pk %}">
-    {% csrf_token %}
-    <table>
-        <thead><tr><th>Appeal?</th><th>#</th><th>Charge</th><th>Category</th><th>Plain-English explanation</th><th>Flag</th></tr></thead>
-        <tbody>
-        {% for item, info in rows %}
-        <tr>
-            <td><input type="checkbox" name="items" value="{{ item.pk }}" {% if info.flag == "review" %}checked{% endif %} aria-label="Appeal line {{ item.line_number }}"></td>
-            <td>{{ item.line_number }}</td>
-            <td>{{ item.description }}<br><small>${{ item.charged_amount }} charged, you owe ${{ item.estimated_patient_responsibility }}</small></td>
-            <td>{{ info.category }}</td>
-            <td>{% if info.source == "rules" %}<em>No AI explanation (local model off).</em>{% else %}{{ info.explanation }}{% endif %}
-                {% for issue in info.issues %}<br><small class="ai-issue">&#9888; {{ issue }}</small>{% endfor %}
-                {% if info.source == "fallback" %}<br><small>(model output failed validation; shown the safe fallback)</small>{% endif %}
-                {% if info.plan_rule %}<details class="ai-rule"><summary><small>Plan rule: {{ info.plan_rule.chunk.title }}</small></summary><small>{{ info.plan_rule.chunk.text }}</small></details>{% endif %}
-            </td>
-            <td><span class="ai-flag ai-flag-{{ info.flag }}">{{ info.flag }}</span></td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    {% if bill.line_items.count > max_items %}<p><small>Only the first {{ max_items }} line items are explained.</small></p>{% endif %}
-    <p>Questions about a charge? <a href="{% url 'claims:ask-plan' %}?plan={{ bill.insurance_plan.pk }}">Ask about your plan</a> (answers come from your plan documents).</p>
 
-    <h3>Draft an appeal letter (Google Gemini)</h3>
-    {% if gemini_ready %}
-    <p>The ticked charges are sent to Gemini together with plan and provider names. Your name and email are
-        <strong>not</strong> sent; the letter uses placeholders you fill in.</p>
-    <p><label for="note">Anything the insurer should know? (optional, 600 characters)</label><br>
-        <textarea id="note" name="note" rows="3" cols="70" maxlength="600"
-                  placeholder="e.g. The ER was the closest one and I had no choice of hospital."></textarea></p>
-    <button type="submit">Draft appeal letter</button>
-    {% else %}
-    <div class="empty-state">Set <code>GEMINI_API_KEY</code> in <code>.env</code> to enable appeal letters.</div>
-    {% endif %}
+{% if rows %}
+<div class="review-summary">
+    <p role="status">
+        {% with total=rows|length %}<strong>{{ total }} charge{{ total|pluralize }} reviewed.</strong>{% endwith %}
+        Charges flagged <em>review</em> are pre-selected for an appeal.
+    </p>
+    <form method="post" data-loading="Running again…">
+        {% csrf_token %}
+        <button type="submit" class="btn-secondary">Run again</button>
+    </form>
+</div>
+
+<form method="post" action="{% url 'claims:bill-appeal' bill.pk %}" id="appeal-form" data-loading="Drafting your letter…">
+    {% csrf_token %}
+    <ol class="charge-list">
+    {% for item, info in rows %}
+        <li class="charge-card charge-card--{{ info.flag }}">
+            <div class="charge-card__head">
+                <div>
+                    <h2 class="charge-card__title"><span class="muted">{{ item.line_number }}.</span> {{ item.description }}</h2>
+                    {% if info.category and info.category != "Not classified" %}<span class="badge">{{ info.category }}</span>{% endif %}
+                </div>
+                <span class="ai-flag ai-flag-{{ info.flag }}">{% if info.flag == "review" %}Needs review{% else %}Looks OK{% endif %}<span class="visually-hidden"> ({{ info.flag }})</span></span>
+            </div>
+            <dl class="charge-card__amounts">
+                <div><dt>Charged</dt><dd>{{ item.charged_amount|money }}</dd></div>
+                <div><dt>Plan covered</dt><dd>{{ item.estimated_covered_amount|money }}</dd></div>
+                <div><dt>You owe</dt><dd><strong>{{ item.estimated_patient_responsibility|money }}</strong></dd></div>
+            </dl>
+            <div class="charge-card__body">
+                {% if info.source == "rules" %}<p class="muted"><em>No AI explanation (local model off).</em></p>
+                {% else %}<p>{{ info.explanation }}</p>{% endif %}
+                {% if info.source == "fallback" %}<p class="muted"><small>The model's answer didn't pass our checks, so a safe fallback is shown.</small></p>{% endif %}
+                {% if info.issues %}
+                <div class="charge-card__why">
+                    <p class="charge-card__label">Why we flagged it</p>
+                    <ul>{% for issue in info.issues %}<li class="ai-issue">{{ issue }}</li>{% endfor %}</ul>
+                </div>
+                {% endif %}
+                {% if info.plan_rule %}
+                <details class="ai-rule disclosure">
+                    <summary>Plan rule: {{ info.plan_rule.chunk.title }}</summary>
+                    <p><small>{{ info.plan_rule.chunk.text }}</small></p>
+                </details>
+                {% endif %}
+            </div>
+            <label class="charge-card__select">
+                <input type="checkbox" name="items" value="{{ item.pk }}" {% if info.flag == "review" %}checked{% endif %} data-appeal-item>
+                Include in appeal
+            </label>
+        </li>
+    {% endfor %}
+    </ol>
+    {% if bill.line_items.count > max_items %}<p class="muted"><small>Only the first {{ max_items }} line items are reviewed.</small></p>{% endif %}
+
+    <div class="callout callout-info">
+        <p>Questions about a charge? <a href="{% url 'claims:ask-plan' %}?plan={{ bill.insurance_plan.pk }}">Ask about your plan</a>. Answers come from your plan documents.</p>
+    </div>
+
+    <section class="card appeal-card" aria-labelledby="appeal-heading">
+        <h2 id="appeal-heading">Draft an appeal letter</h2>
+        {% if gemini_ready %}
+        <p class="muted">We'll write a letter to your insurer about the selected charges. Your name and email are <strong>not</strong> sent. The letter uses placeholders you fill in.</p>
+        <p><label for="note">Anything the insurer should know? <span class="muted">(optional)</span></label>
+            <textarea id="note" name="note" rows="3" maxlength="600"
+                      placeholder="e.g. The ER was the closest one and I had no choice of hospital."></textarea></p>
+        <div class="appeal-bar">
+            <span class="appeal-bar__count" data-appeal-count aria-live="polite"></span>
+            <button type="submit">Draft appeal letter</button>
+        </div>
+        {% else %}
+        <p class="muted">Appeal letters aren't available on this server yet.</p>
+        {% if user.is_staff %}<details><summary><small>Setup (staff only)</small></summary><p><small>Set <code>GEMINI_API_KEY</code> in <code>.env</code> to enable appeal letters.</small></p></details>{% endif %}
+        {% endif %}
+    </section>
 </form>
 {% endif %}
+
+<details class="disclosure how-it-works">
+    <summary>How this works</summary>
+    <p><small>A local Hugging Face model (<code>{{ model_name }}</code>) running on this server explains each charge.
+        Deterministic rule checks always run alongside it and override the model, so a real problem is never hidden.
+        Each charge is matched to the closest rule in your plan documents with semantic search. The first run downloads
+        the model and can take a minute on a CPU.</small></p>
+</details>
+<div class="btn-row"><a class="btn btn-ghost" href="{{ bill.get_absolute_url }}">&larr; Back to bill</a></div>
 {% endblock %}

@@ -1,0 +1,8 @@
+{% comment %}
+KPI tile. Place several inside <div class="kpi-grid">.
+Usage: {% include "components/kpi_tile.html" with label="You owe" value=totals.patient|money sub="across 5 bills" hero=True %}
+{% endcomment %}<div class="kpi{% if hero %} kpi--hero{% endif %}">
+    <div class="kpi__label">{{ label }}</div>
+    <div class="kpi__value">{{ value }}</div>
+    {% if sub %}<div class="kpi__sub">{{ sub }}</div>{% endif %}
+</div>

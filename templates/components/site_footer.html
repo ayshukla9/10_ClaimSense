@@ -1,0 +1,10 @@
+<footer class="site-footer">
+    <div class="site-footer__inner">
+        <span>ClaimSense &middot; Team 10 &middot; Plain-language guidance, not legal or medical advice.</span>
+        <nav aria-label="Footer">
+            {% if user.is_authenticated %}<a href="{% url 'claims:procedure-lookup' %}">Procedure lookup</a>
+            <a href="{% url 'claims:developer' %}">Developer</a>{% endif %}
+            <a href="{% url 'claims:public-plan-types' %}">Public plan catalogue API</a>
+        </nav>
+    </div>
+</footer>

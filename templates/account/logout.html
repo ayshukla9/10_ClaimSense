@@ -1,3 +1,12 @@
-{% extends "base.html" %}{% block content %}
-<h2>Log out</h2><form method="post" action="{% url 'account_logout' %}">{% csrf_token %}<button type="submit">Log out</button></form>
+{% extends "base.html" %}
+{% block title %}Log out — ClaimSense{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+    <div class="card auth-card">
+        <h1>Log out?</h1>
+        <p class="muted">You can log back in any time.</p>
+        <form method="post" action="{% url 'account_logout' %}">{% csrf_token %}<button type="submit" class="auth-submit">Log out</button></form>
+        <p class="auth-switch"><a href="{% url 'claims:home' %}">Stay logged in</a></p>
+    </div>
+</div>
 {% endblock %}

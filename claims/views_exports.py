@@ -47,9 +47,12 @@ def export_bills_json(request):
 
 def reports(request):
     bills = summaries.bill_summary(request.user)
+    totals = summaries.totals(bills)
     ctx = {
         "per_provider": summaries.provider_summary(request.user),
         "per_network": summaries.network_summary(bills),
-        "totals": summaries.totals(bills),
+        "totals": totals,
+        # share of charges the plan paid, for the Insights KPI row
+        "coverage_pct": round(100 * totals["total_covered"] / totals["total_charged"]) if totals["total_charged"] else None,
     }
     return render(request, "claims/reports.html", ctx)

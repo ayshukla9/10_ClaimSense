@@ -1,0 +1,6 @@
+{% comment %}
+Empty state. Usage: {% include "components/empty_state.html" with text="No bills yet." action_url=... action_label="Add a bill" %}
+{% endcomment %}<div class="empty-state">
+    <p>{{ text }}</p>
+    {% if action_url %}<a class="btn btn-secondary" href="{{ action_url }}">{{ action_label }}</a>{% endif %}
+</div>

@@ -1,49 +1,86 @@
 {% extends "base.html" %}
-{% block title %}Reports -- ClaimSense{% endblock %}
+{% load money static %}
+{% block title %}Insights -- ClaimSense{% endblock %}
 {% block content %}
-<h2>Reports</h2>
-<p>
-    <a class="btn" href="{% url 'claims:export-bills-csv' %}">Download CSV</a>
-    <a class="btn" href="{% url 'claims:export-bills-json' %}">Download JSON</a>
-</p>
-
-<div class="card">
-    <strong>Totals:</strong>
-    {{ totals.bill_count }} bill{{ totals.bill_count|pluralize }} |
-    ${{ totals.total_charged|floatformat:2 }} charged |
-    ${{ totals.total_covered|floatformat:2 }} covered by plan |
-    ${{ totals.patient_responsibility|floatformat:2 }} owed by patient
+<div class="page-header page-header--split">
+    <div>
+        <h1>Insights</h1>
+        <p>Where your money went, across every bill you can see.</p>
+    </div>
+    <div class="btn-row" style="margin:0">
+        <a class="btn btn-secondary" href="{% url 'claims:export-bills-csv' %}">Download CSV</a>
+        <a class="btn btn-secondary" href="{% url 'claims:export-bills-json' %}">Download JSON</a>
+    </div>
 </div>
 
-<h3>By provider</h3>
-<table>
-    <thead><tr><th>Provider</th><th>Network</th><th>Bills</th><th>Charged</th><th>Covered</th><th>Patient owes</th></tr></thead>
+<div class="kpi-grid">
+    {% include "components/kpi_tile.html" with label="Owed by patient" value=totals.patient_responsibility|money hero=True %}
+    {% include "components/kpi_tile.html" with label="Charged" value=totals.total_charged|money %}
+    {% include "components/kpi_tile.html" with label="Covered by plan" value=totals.total_covered|money %}
+    <div class="kpi"><div class="kpi__label">Plan paid</div><div class="kpi__value">{% if coverage_pct is not None %}{{ coverage_pct }}%{% else %}—{% endif %}</div><div class="kpi__sub">of charges, over {{ totals.bill_count }} bill{{ totals.bill_count|pluralize }}</div></div>
+</div>
+
+{% if totals.bill_count %}
+<div class="chart-grid">
+    <figure class="chart-card">
+        <figcaption class="chart-card__title">Spending by provider</figcaption>
+        <div id="chart-providers" class="chart-card__plot" role="img" aria-label="Bar chart of total charged per provider, coloured by network status"></div>
+    </figure>
+    <figure class="chart-card">
+        <figcaption class="chart-card__title">Charges over time</figcaption>
+        <div id="chart-time" class="chart-card__plot" role="img" aria-label="Line chart of charged, covered and patient-owed amounts by bill date"></div>
+    </figure>
+</div>
+{% endif %}
+
+<h2>By provider</h2>
+<div class="table-wrap"><table>
+    <thead><tr><th scope="col">Provider</th><th scope="col">Network</th><th scope="col" class="num">Bills</th><th scope="col" class="num">Charged</th><th scope="col" class="num">Covered</th><th scope="col" class="num">Patient owes</th></tr></thead>
     <tbody>
         {% for row in per_provider %}
         <tr>
-            <td>{{ row.provider }}</td><td>{{ row.network_status }}</td><td>{{ row.bill_count }}</td>
-            <td>${{ row.total_charged|floatformat:2 }}</td><td>${{ row.total_covered|floatformat:2 }}</td>
-            <td>${{ row.patient_responsibility|floatformat:2 }}</td>
+            <td>{{ row.provider }}</td>
+            <td>{% if row.network_status == "Out of Network" %}{% include "components/badge.html" with tone="danger" text=row.network_status %}{% else %}{% include "components/badge.html" with tone="ok" text=row.network_status %}{% endif %}</td>
+            <td class="num">{{ row.bill_count }}</td>
+            <td class="num">{{ row.total_charged|money }}</td><td class="num">{{ row.total_covered|money }}</td>
+            <td class="num"><strong>{{ row.patient_responsibility|money }}</strong></td>
         </tr>
         {% empty %}
         <tr><td colspan="6"><div class="empty-state">No providers yet.</div></td></tr>
         {% endfor %}
     </tbody>
-</table>
+</table></div>
 
-<h3>By network status</h3>
-<table>
-    <thead><tr><th>Network</th><th>Bills</th><th>Charged</th><th>Covered</th><th>Patient owes</th></tr></thead>
+<h2>In network vs. out of network</h2>
+<div class="table-wrap"><table>
+    <thead><tr><th scope="col">Network</th><th scope="col" class="num">Bills</th><th scope="col" class="num">Charged</th><th scope="col" class="num">Covered</th><th scope="col" class="num">Patient owes</th></tr></thead>
     <tbody>
         {% for row in per_network %}
         <tr>
-            <td>{{ row.network_status }}</td><td>{{ row.bill_count }}</td>
-            <td>${{ row.total_charged|floatformat:2 }}</td><td>${{ row.total_covered|floatformat:2 }}</td>
-            <td>${{ row.patient_responsibility|floatformat:2 }}</td>
+            <td>{{ row.network_status }}</td><td class="num">{{ row.bill_count }}</td>
+            <td class="num">{{ row.total_charged|money }}</td><td class="num">{{ row.total_covered|money }}</td>
+            <td class="num"><strong>{{ row.patient_responsibility|money }}</strong></td>
         </tr>
         {% empty %}
         <tr><td colspan="5"><div class="empty-state">No bills yet.</div></td></tr>
         {% endfor %}
     </tbody>
-</table>
+</table></div>
+
+<div class="callout callout-info">
+    <p>Wondering whether a charge is typical? <a href="{% url 'claims:procedure-lookup' %}">Look up a procedure</a> to compare it with other bills and official billing codes.</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if totals.bill_count %}
+<script src="https://cdn.jsdelivr.net/npm/vega@5.30.0/build/vega.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5.21.0/build/vega-lite.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6.26.0/build/vega-embed.min.js"></script>
+<script src="{% static 'js/charts.js' %}?v=3"></script>
+<script>
+    ClaimSenseCharts.embed("#chart-providers", "{% static 'vega-lite/charged_per_provider.vl.json' %}");
+    ClaimSenseCharts.embed("#chart-time", "{% static 'vega-lite/charges_over_time.vl.json' %}");
+</script>
+{% endif %}
 {% endblock %}

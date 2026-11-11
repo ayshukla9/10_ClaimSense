@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Developer -- ClaimSense{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Developer</h1>
+    <p>Every page and API built for the INFO 490 assignments. Patients use Dashboard, Bills, Ask AI and Insights instead.</p>
+</div>
+
+<div class="link-grid">
+    <section class="card">
+        <h2>Bill list views (P1-A2)</h2>
+        <ul class="link-list">
+            <li><a href="{% url 'claims:bill-list-manual' %}">View 1: HttpResponse (manual)</a></li>
+            <li><a href="{% url 'claims:bill-list-render' %}">View 2: render() shortcut</a> <span class="muted">(the Bills page)</span></li>
+            <li><a href="{% url 'claims:bill-list-cbv-base' %}">View 3: base class-based view</a></li>
+            <li><a href="{% url 'claims:bill-list-cbv-generic' %}">View 4: generic ListView</a></li>
+        </ul>
+    </section>
+    <section class="card">
+        <h2>Search and summaries (P1-A3)</h2>
+        <ul class="link-list">
+            <li><a href="{% url 'claims:bill-search' %}">Search by provider (GET)</a></li>
+            <li><a href="{% url 'claims:bill-lookup' %}">Lookup by patient email (POST)</a></li>
+            <li><a href="{% url 'claims:bill-summary' %}">Summary (aggregations)</a></li>
+            {% if user.is_staff %}<li><a href="{% url 'claims:bill-manage' %}">Filter and add bills (forms)</a></li>{% endif %}
+        </ul>
+    </section>
+    <section class="card">
+        <h2>Charts and reports (P1-A4, A5)</h2>
+        <ul class="link-list">
+            <li><a href="{% url 'claims:charts' %}">Matplotlib chart</a></li>
+            <li><a href="{% url 'claims:vega-charts' %}">Vega-Lite charts</a></li>
+            <li><a href="{% url 'claims:reports' %}">Insights / reports</a></li>
+            <li><a href="{% url 'claims:export-bills-csv' %}">Export CSV</a> &middot; <a href="{% url 'claims:export-bills-json' %}">Export JSON</a></li>
+        </ul>
+    </section>
+    <section class="card">
+        <h2>JSON APIs</h2>
+        <ul class="link-list">
+            <li><a href="{% url 'claims:api-bills' %}"><code>/api/bills/</code></a> &middot; <a href="{% url 'claims:api-bills-plain' %}">plain</a> &middot; <a href="{% url 'claims:api-bills-cbv' %}">CBV</a></li>
+            <li><a href="{% url 'claims:api-summary-providers' %}"><code>/api/summary/providers/</code></a></li>
+            <li><a href="{% url 'claims:api-summary-bills' %}"><code>/api/summary/bills/</code></a></li>
+            <li><a href="{% url 'claims:api-procedures' %}?q=imaging"><code>/api/procedures/?q=imaging</code></a></li>
+            <li><a href="{% url 'claims:public-plan-types' %}"><code>/api/public/plan-types/</code></a> <span class="muted">(public)</span></li>
+        </ul>
+    </section>
+    <section class="card">
+        <h2>External data</h2>
+        <ul class="link-list">
+            <li><a href="{% url 'claims:procedure-lookup' %}">Procedure lookup (HCPCS codes)</a></li>
+        </ul>
+    </section>
+</div>
+{% endblock %}

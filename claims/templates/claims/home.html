@@ -1,16 +1,95 @@
 {% extends "base.html" %}
-{% block title %}Home — ClaimSense{% endblock %}
+{% load money %}
+{% block title %}{% if user.is_authenticated %}Dashboard{% else %}Home{% endif %} — ClaimSense{% endblock %}
 {% block content %}
-<h2>Know what your insurance is actually worth</h2>
-<p>ClaimSense reconciles hospital bills against plan rules, one line item at a time.</p>
 {% if user.is_authenticated %}
-<div class="card"><strong>{{ total_bills }}</strong> bills tracked.
-<a href="{% url 'claims:bill-list-render' %}">View all</a></div>
-<p>Your account shows only records explicitly linked to you. If none are linked yet, contact the administrator.</p>
-<h3>Most recent bills</h3>
-{% include "claims/_bill_table.html" with bills=recent_bills %}
-{% else %}
-<p>Sign in to continue.</p>
+<div class="page-header dash-header">
+    <div>
+        <h1>Hi, {{ display_name }}</h1>
+        <p>{% if plan %}{{ plan.name }} &middot; {{ plan.plan_type }}{% else %}Here's where your bills stand.{% endif %}</p>
+    </div>
+</div>
+
+{% if stats.bill_count %}
+<div class="kpi-grid">
+    <div class="kpi kpi--hero"><div class="kpi__label">You owe</div><div class="kpi__value">{{ stats.owed|money }}</div><div class="kpi__sub">Estimated, across all your bills</div></div>
+    <div class="kpi"><div class="kpi__label">Plan covered</div><div class="kpi__value">{{ stats.covered|money }}</div><div class="kpi__sub">of {{ stats.charged|money }} charged</div></div>
+    <div class="kpi"><div class="kpi__label">Charges to review</div><div class="kpi__value">{{ stats.flagged_items }}</div><div class="kpi__sub">on {{ stats.flagged_bills }} bill{{ stats.flagged_bills|pluralize }}</div></div>
+    <div class="kpi"><div class="kpi__label">Out-of-network bills</div><div class="kpi__value">{{ stats.out_of_network_bills }}</div><div class="kpi__sub">of {{ stats.bill_count }} bill{{ stats.bill_count|pluralize }} tracked</div></div>
+</div>
 {% endif %}
-<p><a href="{% url 'claims:public-plan-types' %}">Public insurance plan catalogue API</a></p>
+
+<div class="dash-grid">
+    <section class="dash-main" aria-labelledby="attention-heading">
+        <div class="section-head">
+            <h2 id="attention-heading">Needs your attention</h2>
+            {% if attention %}<a href="{% url 'claims:bill-list-render' %}?flagged=1">See all flagged</a>{% endif %}
+        </div>
+        {% if attention %}
+        <ul class="attention-list">
+            {% for row in attention %}
+            <li class="attention-item">
+                <div class="attention-item__body">
+                    <a class="attention-item__title" href="{{ row.bill.get_absolute_url }}">{{ row.bill.provider.name }}</a>
+                    <div class="attention-item__meta">{{ row.bill.reference_number }} &middot; {{ row.bill.bill_date }} &middot; {{ row.flagged_items }} charge{{ row.flagged_items|pluralize }} flagged</div>
+                    <div class="attention-item__tags">
+                        {% for issue in row.issues %}{% include "components/badge.html" with tone="warn" text=issue %}{% endfor %}
+                    </div>
+                </div>
+                <div class="attention-item__side">
+                    <div class="attention-item__owed"><span class="muted">You owe</span><strong>{{ row.owed|money }}</strong></div>
+                    <a class="btn btn-secondary" href="{% url 'claims:bill-explain' row.bill.pk %}">Review</a>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% elif stats.bill_count %}
+        <div class="callout callout-ok"><p><strong>Nothing to review right now.</strong> None of your charges tripped a rule check.</p></div>
+        {% else %}
+        {% include "components/empty_state.html" with text="No bills are linked to your account yet. Ask the administrator to link your records." %}
+        {% endif %}
+
+        {% if recent_rows %}
+        <div class="section-head">
+            <h2>Recent bills</h2>
+            <a href="{% url 'claims:bill-list-render' %}">View all {{ total_bills }} bills</a>
+        </div>
+        {% include "claims/_bill_rows_table.html" with rows=recent_rows %}
+        {% endif %}
+    </section>
+
+    <aside class="dash-side" aria-labelledby="ask-heading">
+        <div class="card ask-card">
+            <h2 id="ask-heading">Ask about your plan</h2>
+            <p class="muted"><small>Answers come from your plan documents, with sources.</small></p>
+            <form method="post" action="{% url 'claims:ask-plan' %}">
+                {% csrf_token %}
+                {% if plan %}<input type="hidden" name="plan" value="{{ plan.pk }}">{% endif %}
+                <label for="dash-question" class="visually-hidden">Your question</label>
+                <textarea id="dash-question" name="question" rows="3" maxlength="300" required placeholder="e.g. Do I need a referral to see a specialist?"></textarea>
+                <button type="submit">Ask</button>
+            </form>
+            <p class="muted"><small>Try one of these:</small></p>
+            <ul class="chip-list">
+                {% for q in example_questions %}<li><a class="chip" href="{% url 'claims:ask-plan' %}?q={{ q|urlencode }}">{{ q }}</a></li>{% endfor %}
+            </ul>
+        </div>
+    </aside>
+</div>
+<p class="muted"><small>You only see records explicitly linked to your account.</small></p>
+{% else %}
+<section class="hero">
+    <h1>Know what your insurance is actually worth</h1>
+    <p>ClaimSense reconciles hospital bills against your plan rules, one line item at a time, and flags the charges worth a second look.</p>
+    <div class="btn-row">
+        <a class="btn" href="{% url 'account_login' %}">Log in</a>
+        <a class="btn btn-secondary" href="{% url 'account_signup' %}">Create an account</a>
+    </div>
+</section>
+<div class="feature-grid">
+    <div class="card"><h2>See what you really owe</h2><p class="muted">Every charge split into what your plan covered and what's left for you.</p></div>
+    <div class="card"><h2>Spot charges to question</h2><p class="muted">Out-of-network providers and high patient shares are flagged automatically.</p></div>
+    <div class="card"><h2>Get plain-English answers</h2><p class="muted">Ask about your coverage and get answers cited from your plan documents.</p></div>
+</div>
+{% endif %}
 {% endblock %}
