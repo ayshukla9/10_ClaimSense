@@ -55,12 +55,16 @@ design is based on.
 ### 1.4 Full app flow
 
 1. Log in (patient accounts only see their own plan and bills; staff can pick any plan).
-2. **Ask AI** → type a question (or start from **Explain with AI → "Ask about your plan"**, which pre-selects the
-   bill's plan) → **Ask**. Django form, CSRF-protected POST to `views_ai.ask_plan`.
-3. The page shows the answer, any warnings, a **Sources** table (section, which plans it applies to, similarity
-   score, ✓ if cited, expandable text) and the timing (retrieval ms, generation s).
-4. **Explain with AI** on a bill → each line item gets the model's explanation and flag, rule-check warnings and an
-   expandable **Plan rule** found by semantic search.
+2. **Ask AI** → type a question and press **Ask**, or click one of the example questions (on the dashboard or the
+   Ask AI page), which asks it in one click. **Explain with AI → "Ask about your plan"** pre-selects the bill's plan.
+   Django form, CSRF-protected POST to `views_ai.ask_plan`.
+3. The page scrolls to the answer: the answer text, its citation chips, any warnings, a **Sources** list (section,
+   which plans it applies to, ✓ if cited, expandable text) and a collapsed **Details** line with the timing
+   (retrieval ms, generation s) and model names.
+4. **Explain with AI** on a bill (or on a bill under "Needs your attention" on the dashboard) is a POST button, so
+   one click runs the review → each line item gets the model's explanation and flag, rule-check warnings and the
+   **Plan rule** found by semantic search, shown in full under the charge. Without a Gemini key the page ends with
+   "What you can do next" instead of the appeal-letter form.
 
 ### 1.5 Guardrails and error handling
 

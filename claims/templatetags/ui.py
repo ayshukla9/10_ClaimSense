@@ -11,6 +11,13 @@ PLACEHOLDER = re.compile(r"\[([A-Za-z][^\[\]\n]{0,40})\]")
 
 
 @register.filter
+def flag_help(label):
+    """Plain-English meaning of a flag badge label ("Out of network" -> one sentence)."""
+    from claims.bill_insights import issue_help
+    return issue_help(label)
+
+
+@register.filter
 def highlight_placeholders(text):
     """Escape text, then wrap [Your name]-style placeholders in <mark> so they stand out."""
     escaped = escape(text or "")

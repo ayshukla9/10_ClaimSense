@@ -207,4 +207,10 @@ All five phases are built on branch `feature/ui-phase1-foundation` (not yet comm
 
 Answers to §10: system font (no Google Fonts); went straight to HTML/CSS; nav labels changed and tests updated; dark mode not done.
 
+**Follow-up pass (2026-11-11, branch `feature/ui-intuitive`):** "Explain with AI" is a POST button on the dashboard
+and bill detail, so one click runs the review (no intermediate page); example questions ask in one click; the page
+scrolls to the answer; the plan rule is shown in full under each charge; flag badges have tooltips and a "What the
+flags mean" legend; the missing-citation warning is an info note; without a Gemini key the appeal checkboxes are
+replaced by "What you can do next"; the header shows the patient's name. 49 tests passing.
+
 Known gaps: the appeal letter page was not checked in a browser (no Gemini key on the test machine); auth field errors aren't linked with `aria-describedby`; in "Charges over time", bills on the same date make the line jump vertically (from the original spec).

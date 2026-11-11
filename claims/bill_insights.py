@@ -18,6 +18,18 @@ ISSUE_LABELS = {
 }
 
 
+# One-line, plain-English meaning of each badge (tooltips and the "What the flags mean" legend).
+ISSUE_HELP = {
+    "Out of network": "The provider isn't in your plan's network, so your plan pays less and you may owe more.",
+    "High patient share": "You're paying half or more of this charge yourself, which is unusual for covered care.",
+    "Totals don't add up": "What the plan covered plus what you owe doesn't equal the amount charged.",
+}
+
+
+def issue_help(label):
+    return ISSUE_HELP.get(label, "")
+
+
 def issue_label(issue):
     return ISSUE_LABELS.get(issue, issue.rstrip("."))
 

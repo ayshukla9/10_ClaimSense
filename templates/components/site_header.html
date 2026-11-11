@@ -15,7 +15,7 @@
             </div>
             <div class="site-nav__account">
                 {% if user.is_authenticated %}
-                <span class="site-nav__user">{{ user.get_full_name|default:user.username }}</span>
+                <span class="site-nav__user">{{ user.get_full_name|default:user.patient_record.name|default:user.username }}</span>
                 <form method="post" action="{% url 'account_logout' %}">{% csrf_token %}<button type="submit" class="btn btn-on-dark">Log out</button></form>
                 {% else %}
                 <a href="{% url 'account_login' %}" {% if current == 'account_login' %}aria-current="page"{% endif %}>Log in</a>

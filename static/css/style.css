@@ -311,6 +311,20 @@ figcaption { font-size: var(--fs-sm); color: var(--muted); margin-top: var(--sp-
 .result-count { color: var(--muted); font-size: var(--fs-sm); margin: 0 0 var(--sp-2); }
 
 .flag-cell { display: flex; flex-wrap: wrap; gap: var(--sp-1); }
+.badge[title] { cursor: help; }
+.inline-form { margin: 0; }
+.section-lead { color: var(--muted); font-size: var(--fs-sm); margin: 0 0 var(--sp-2); }
+.flag-legend dl { margin: 0; display: grid; gap: var(--sp-2); }
+.flag-legend dl > div { display: flex; gap: var(--sp-3); align-items: baseline; flex-wrap: wrap; }
+.flag-legend dt { flex: 0 0 150px; }
+.flag-legend dd { margin: 0; flex: 1 1 260px; font-size: var(--fs-sm); color: #334155; }
+
+/* Example questions as one-click buttons (dashboard) */
+.chip-form { margin: 0; }
+button.chip { width: 100%; justify-content: flex-start; text-align: left; font-weight: 400; min-height: 0;
+    color: var(--ink); background: var(--surface-alt); border: 1px solid var(--border); }
+button.chip:hover { color: var(--ink); background: var(--brand-tint); border-color: var(--border-strong); }
+button.chip.is-loading { color: var(--muted); }
 .bill-callout { justify-content: space-between; align-items: center; flex-wrap: wrap; }
 .bill-callout p { margin: 0; }
 
@@ -368,6 +382,15 @@ button.is-loading::before { content: ""; position: absolute; left: 14px; top: 50
 .charge-card__select { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-3) var(--sp-5); margin-top: var(--sp-3);
     background: var(--surface-alt); border-top: 1px solid var(--border); border-radius: 0 0 var(--radius) var(--radius); cursor: pointer; }
 
+.charge-card__end { height: var(--sp-4); }
+.plan-rule { background: var(--brand-tint); border-radius: var(--radius-sm); padding: var(--sp-3) var(--sp-4); margin: 0 0 var(--sp-3); }
+.plan-rule .charge-card__label { color: var(--brand); }
+.plan-rule__title { text-transform: none; letter-spacing: 0; font-weight: 600; }
+.plan-rule__text { margin: 0; font-size: var(--fs-sm); color: #1e293b; line-height: 1.55; }
+.answer-check { margin-top: var(--sp-3); }
+[data-scroll-into-view] { scroll-margin-top: 88px; }
+[data-scroll-into-view]:focus { outline: none; }
+.next-steps { margin: 0 0 var(--sp-3); padding-left: var(--sp-5); display: grid; gap: var(--sp-2); font-size: var(--fs-sm); }
 .appeal-card h2 { margin-top: 0; }
 .appeal-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; }
 .appeal-bar__count { font-weight: 600; font-size: var(--fs-sm); }

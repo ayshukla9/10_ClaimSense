@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load money %}
+{% load money ui %}
 {% block title %}Bill {{ bill.reference_number }} -- ClaimSense{% endblock %}
 {% block content %}
 <p><small><a href="{% url 'claims:bill-list-render' %}">Bills</a> / {{ bill.reference_number }}</small></p>
@@ -19,8 +19,10 @@
 </div>
 {% if flagged_count %}
 <div class="callout callout-warn bill-callout">
-    <p><strong>{{ flagged_count }} charge{{ flagged_count|pluralize }} worth a second look.</strong> See the flags below, or let AI explain each charge and draft an appeal.</p>
-    <a class="btn" href="{% url 'claims:bill-explain' bill.pk %}">Review with AI</a>
+    <p><strong>{{ flagged_count }} charge{{ flagged_count|pluralize }} worth a second look.</strong> AI can explain each charge in plain English and show the plan rule that applies.</p>
+    <form method="post" action="{% url 'claims:bill-explain' bill.pk %}" class="inline-form" data-loading="Reviewing charges… up to a minute">
+        {% csrf_token %}<button type="submit">Explain with AI</button>
+    </form>
 </div>
 {% endif %}
 {% if line_items %}
@@ -39,7 +41,7 @@
         <tr><td>{{ li.line_number }}</td><td>{{ li.description }}<br><small><a href="{% url 'claims:procedure-lookup' %}?q={{ li.description|urlencode }}">Look up typical cost</a></small></td>
             <td class="num">{{ li.charged_amount|money }}</td><td class="num">{{ li.estimated_covered_amount|money }}</td>
             <td class="num"><strong>{{ li.estimated_patient_responsibility|money }}</strong></td>
-            <td><div class="flag-cell">{% for f in flags %}{% include "components/badge.html" with tone="warn" text=f %}{% empty %}{% include "components/badge.html" with tone="ok" text="OK" %}{% endfor %}</div></td></tr>
+            <td><div class="flag-cell">{% for f in flags %}{% include "components/badge.html" with tone="warn" text=f help=f|flag_help %}{% empty %}{% include "components/badge.html" with tone="ok" text="OK" %}{% endfor %}</div></td></tr>
         {% empty %}
         <tr><td colspan="6"><div class="empty-state">No line items.</div></td></tr>
         {% endfor %}
@@ -49,8 +51,18 @@
     {% endif %}
 </table>
 </div>
+{% if flagged_count %}
+<details class="disclosure flag-legend">
+    <summary>What the flags mean</summary>
+    <dl>
+        {% for label in flag_labels %}<div><dt>{% include "components/badge.html" with tone="warn" text=label %}</dt><dd>{{ label|flag_help }}</dd></div>{% endfor %}
+    </dl>
+</details>
+{% endif %}
 <div class="btn-row">
-    {% if line_items %}<a class="btn{% if flagged_count %} btn-secondary{% endif %}" href="{% url 'claims:bill-explain' bill.pk %}">Explain with AI</a>
+    {% if line_items %}
+    {% if not flagged_count %}<form method="post" action="{% url 'claims:bill-explain' bill.pk %}" class="inline-form" data-loading="Reviewing charges… up to a minute">
+        {% csrf_token %}<button type="submit">Explain with AI</button></form>{% endif %}
     <a class="btn btn-secondary" href="{% url 'claims:ask-plan' %}?plan={{ bill.insurance_plan.pk }}">Ask about my plan</a>{% endif %}
     <a class="btn btn-ghost" href="{% url 'claims:bill-list-render' %}">&larr; All bills</a>
 </div>

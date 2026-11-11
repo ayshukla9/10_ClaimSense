@@ -131,6 +131,7 @@ class BillDetailView(DetailView):
         ctx["line_items"] = self.object.line_items.all()
         ctx["item_flags"] = line_item_flags(ctx["line_items"])
         ctx["flagged_count"] = sum(1 for _, flags in ctx["item_flags"] if flags)
+        ctx["flag_labels"] = list(dict.fromkeys(f for _, flags in ctx["item_flags"] for f in flags))
         ctx["totals"] = self.object.line_items.aggregate(
             charged=Sum("charged_amount"),
             covered=Sum("estimated_covered_amount"),

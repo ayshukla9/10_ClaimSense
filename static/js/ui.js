@@ -25,17 +25,29 @@
         });
     });
 
-    // 2. Example question chips fill the question box instead of reloading the page.
+    // 2. Example question chips fill the question box and ask it right away (one click).
     var question = document.getElementById("question");
     document.querySelectorAll("[data-fill-question]").forEach(function (chip) {
         chip.addEventListener("click", function (e) {
             if (!question) return;
             e.preventDefault();
             question.value = chip.dataset.fillQuestion;
-            question.focus();
             updateCount();
+            var form = question.form;
+            if (form && form.getAttribute("aria-busy") !== "true") {
+                if (form.requestSubmit) form.requestSubmit(); else form.submit();
+            }
         });
     });
+
+    // 2b. Bring a fresh answer (or error) into view so it isn't hidden below the fold.
+    var fresh = document.querySelector("[data-scroll-into-view]");
+    if (fresh) {
+        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        fresh.setAttribute("tabindex", "-1");
+        fresh.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+        fresh.focus({ preventScroll: true });
+    }
 
     // 3. Character counter for the question box.
     var counter = document.querySelector('[data-char-count-for="question"]');
