@@ -16,8 +16,14 @@ python manage.py test claims                    # should say OK
 python manage.py runserver
 ```
 
+Windows laptop without a GPU (our demo PC): same steps with `.venv\Scripts\activate`, and in `.env` use
+`LOCAL_LLM_DEVICE=cpu`, `LOCAL_LLM_DTYPE=bfloat16`, `LOCAL_LLM_THREADS=8` (3–6 s per answer, ~10 s per 2-line bill;
+float32 is about 3× slower). Start with `python manage.py runserver --noreload` and close other memory-heavy apps.
+
 Then warm the cache: log in as `ecarter1`, open bill **CLM-1004 → Explain with AI → Explain this bill**, and ask
 the two success questions below once. Re-running them in the demo is then instant (say so: "cached for 24 h").
+The cache lives in the server's memory, so warm it after the last server start (on CPU the first request takes
+~35 s while the model loads).
 Have a second, *un-cached* question ready to show real latency.
 
 ## Run of show
@@ -42,7 +48,7 @@ Have a second, *un-cached* question ready to show real latency.
 * **Which models?** `Qwen/Qwen2.5-1.5B-Instruct` (generation, local) and `sentence-transformers/all-MiniLM-L6-v2`
   (embeddings, local). Gemini only for the optional appeal letter.
 * **Why those?** A6 benchmark: Qwen2.5-1.5B scored 0.94 with 100% correct flags at ~14 s/item on CPU; 3–4B models
-  scored the same at 58–70 s; smaller models scored 0.09–0.83. On the Apple GPU it answers in ~3 s. MiniLM: small,
+  scored the same at 58–70 s; smaller models scored 0.09–0.83. On the Apple GPU it answers in ~3 s; on our demo PC's CPU (bfloat16) in 3–6 s. MiniLM: small,
   fast, good enough for ~30 short sections (the threshold of 0.25 sits between 0.12 off-topic and 0.43+ relevant).
 * **How are inputs processed?** Question cleaned and checked (empty, ≤300 chars, injection) → embedded → cosine
   search over plan-filtered chunks → top 3 above 0.25 → numbered excerpts in a zero-shot prompt → greedy generation
