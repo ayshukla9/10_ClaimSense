@@ -31,11 +31,11 @@
 </form>
 
 {% if error %}
-<div class="callout callout-danger" role="alert"><p><strong>Could not answer.</strong> {{ error }}</p></div>
+<div class="callout callout-danger" role="alert" data-scroll-into-view><p><strong>Could not answer.</strong> {{ error }}</p></div>
 {% endif %}
 
 {% if answer %}
-<section class="card answer-card" aria-labelledby="answer-heading">
+<section class="card answer-card" id="answer" aria-labelledby="answer-heading" data-scroll-into-view>
     <p class="answer-card__q"><span class="muted">You asked</span><br>{{ answer.question|default:question }}</p>
     <h2 id="answer-heading">Answer</h2>
     {% if answer.status == "answered" %}
@@ -50,9 +50,10 @@
     {% else %}
         <p class="answer-card__text">{{ answer.text }}</p>
     {% endif %}
-    {% for w in answer.warnings %}<div class="callout callout-warn"><p class="ai-issue">{{ w }}</p></div>{% endfor %}
     {% if answer.citations %}<p class="answer-card__cites"><small class="muted">Based on</small>
         {% for c in answer.citations %}<a class="cite" href="#source-{{ c }}">[{{ c }}]</a>{% endfor %}</p>{% endif %}
+    {% for w in answer.warnings %}{% if "does not cite" in w %}<div class="callout callout-info answer-check"><p>{{ w }}</p></div>
+    {% else %}<div class="callout callout-warn"><p class="ai-issue">{{ w }}</p></div>{% endif %}{% endfor %}
     <details class="answer-card__tech">
         <summary><small>Details</small></summary>
         {% for n in answer.notes %}<p><small class="muted">{{ n }}</small></p>{% endfor %}
@@ -90,6 +91,7 @@
 
 <aside class="ask-side card" aria-labelledby="examples-heading">
     <h2 id="examples-heading">Try asking</h2>
+    <p class="muted"><small>Tap a question to ask it.</small></p>
     <ul class="chip-list">
         {% for q in examples %}<li><a class="chip" href="?q={{ q|urlencode }}{% if plan %}&amp;plan={{ plan.pk }}{% endif %}" data-fill-question="{{ q }}">{{ q }}</a></li>{% endfor %}
     </ul>

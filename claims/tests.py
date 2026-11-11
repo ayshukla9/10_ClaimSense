@@ -570,6 +570,27 @@ class Phase2PagesTests(TestCase):
         self.assertContains(response, '1 charge worth a second look')
         self.assertContains(response, 'High patient share')
         self.assertContains(response, '$1,800.00')
+        # Flags are explained (tooltip + legend), and the AI button is a POST form so one click runs the review.
+        self.assertContains(response, 'What the flags mean')
+        self.assertContains(response, "The provider isn&#x27;t in your plan&#x27;s network")
+        self.assertContains(response, f'method="post" action="/bills/{self.flagged.pk}/explain/"', count=1)
+
+    def test_one_click_review_and_example_questions(self):
+        response = self.client.get('/')
+        self.assertContains(response, f'method="post" action="/bills/{self.flagged.pk}/explain/"')
+        self.assertContains(response, 'name="question" value="What is my deductible')  # example asks in one click
+
+    def test_review_without_gemini_shows_next_steps_not_appeal(self):
+        raw = '{"category": "Emergency care", "explanation": "An ER visit.", "flag": "ok"}'
+        with self.settings(GEMINI_API_KEY=''), patch('claims.ai.local_llm._generate', return_value=raw):
+            response = self.client.post(f'/bills/{self.flagged.pk}/explain/')
+        self.assertContains(response, 'What you can do next')
+        self.assertContains(response, '$1,100.00</strong> of what you owe')
+        self.assertNotContains(response, 'Include in appeal')
+        with self.settings(GEMINI_API_KEY='test-key'), patch('claims.ai.local_llm._generate', return_value=raw):
+            response = self.client.post(f'/bills/{self.flagged.pk}/explain/')
+        self.assertContains(response, 'Include in appeal')
+        self.assertNotContains(response, 'What you can do next')
 
 
 class UiFilterTests(TestCase):

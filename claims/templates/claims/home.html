@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load money %}
+{% load money ui %}
 {% block title %}{% if user.is_authenticated %}Dashboard{% else %}Home{% endif %} — ClaimSense{% endblock %}
 {% block content %}
 {% if user.is_authenticated %}
@@ -26,6 +26,7 @@
             {% if attention %}<a href="{% url 'claims:bill-list-render' %}?flagged=1">See all flagged</a>{% endif %}
         </div>
         {% if attention %}
+        <p class="section-lead">These bills have charges that broke a plan rule. Explain them with AI to see why and what to do.</p>
         <ul class="attention-list">
             {% for row in attention %}
             <li class="attention-item">
@@ -33,12 +34,14 @@
                     <a class="attention-item__title" href="{{ row.bill.get_absolute_url }}">{{ row.bill.provider.name }}</a>
                     <div class="attention-item__meta">{{ row.bill.reference_number }} &middot; {{ row.bill.bill_date }} &middot; {{ row.flagged_items }} charge{{ row.flagged_items|pluralize }} flagged</div>
                     <div class="attention-item__tags">
-                        {% for issue in row.issues %}{% include "components/badge.html" with tone="warn" text=issue %}{% endfor %}
+                        {% for issue in row.issues %}{% include "components/badge.html" with tone="warn" text=issue help=issue|flag_help %}{% endfor %}
                     </div>
                 </div>
                 <div class="attention-item__side">
                     <div class="attention-item__owed"><span class="muted">You owe</span><strong>{{ row.owed|money }}</strong></div>
-                    <a class="btn btn-secondary" href="{% url 'claims:bill-explain' row.bill.pk %}">Review</a>
+                    <form method="post" action="{% url 'claims:bill-explain' row.bill.pk %}" class="inline-form" data-loading="Reviewing…">
+                        {% csrf_token %}<button type="submit">Explain with AI</button>
+                    </form>
                 </div>
             </li>
             {% endfor %}
@@ -69,10 +72,14 @@
                 <textarea id="dash-question" name="question" rows="3" maxlength="300" required placeholder="e.g. Do I need a referral to see a specialist?"></textarea>
                 <button type="submit">Ask</button>
             </form>
-            <p class="muted"><small>Try one of these:</small></p>
-            <ul class="chip-list">
-                {% for q in example_questions %}<li><a class="chip" href="{% url 'claims:ask-plan' %}?q={{ q|urlencode }}">{{ q }}</a></li>{% endfor %}
-            </ul>
+            <p class="muted"><small>Or tap a question to ask it:</small></p>
+            <form method="post" action="{% url 'claims:ask-plan' %}" class="chip-form" data-loading="Asking…">
+                {% csrf_token %}
+                {% if plan %}<input type="hidden" name="plan" value="{{ plan.pk }}">{% endif %}
+                <ul class="chip-list">
+                    {% for q in example_questions %}<li><button type="submit" class="chip" name="question" value="{{ q }}">{{ q }}</button></li>{% endfor %}
+                </ul>
+            </form>
         </div>
     </aside>
 </div>

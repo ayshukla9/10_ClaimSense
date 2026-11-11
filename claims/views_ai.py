@@ -45,6 +45,9 @@ def bill_explain(request, pk):
         rows, ctx["notice"] = _explanations(bill)
         # A9: attach the closest plan rule to each line item (retrieval only; never breaks the page).
         ctx["rows"] = [(item, {**info, "plan_rule": rag.rule_for_line_item(item)}) for item, info in rows]
+        flagged = [item for item, info in rows if info.get("flag") == "review"]
+        ctx["flagged_count"] = len(flagged)
+        ctx["flagged_owed"] = sum((item.estimated_patient_responsibility for item in flagged), 0)
     return render(request, "claims/bill_explain.html", ctx)
 
 

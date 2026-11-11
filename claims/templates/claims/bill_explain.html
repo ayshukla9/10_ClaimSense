@@ -12,7 +12,7 @@
 <div class="card run-card">
     <div>
         <h2>Ready to review bill {{ bill.reference_number }}</h2>
-        <p class="muted">We'll explain each charge, run the rule checks (network status, your share, totals) and match it to the closest rule in your plan documents.</p>
+        <p class="muted">We'll explain each charge, run the rule checks (network status, your share, totals) and match it to the closest rule in your plan documents. Usually takes 10–60 seconds.</p>
     </div>
     <form method="post" data-loading="Reviewing charges… this can take up to a minute">
         {% csrf_token %}
@@ -34,7 +34,9 @@
 <div class="review-summary">
     <p role="status">
         {% with total=rows|length %}<strong>{{ total }} charge{{ total|pluralize }} reviewed.</strong>{% endwith %}
-        Charges flagged <em>review</em> are pre-selected for an appeal.
+        {% if flagged_count %}{{ flagged_count }} need{{ flagged_count|pluralize:"s," }} a second look, covering <strong>{{ flagged_owed|money }}</strong> of what you owe.
+        {% if gemini_ready %}They're pre-selected for an appeal.{% endif %}
+        {% else %}Nothing looks wrong.{% endif %}
     </p>
     <form method="post" data-loading="Running again…">
         {% csrf_token %}
@@ -70,28 +72,32 @@
                 </div>
                 {% endif %}
                 {% if info.plan_rule %}
-                <details class="ai-rule disclosure">
-                    <summary>Plan rule: {{ info.plan_rule.chunk.title }}</summary>
-                    <p><small>{{ info.plan_rule.chunk.text }}</small></p>
-                </details>
+                <div class="ai-rule plan-rule">
+                    <p class="charge-card__label">Plan rule: <span class="plan-rule__title">{{ info.plan_rule.chunk.title }}</span></p>
+                    <p class="plan-rule__text">{{ info.plan_rule.chunk.text }}</p>
+                </div>
                 {% endif %}
             </div>
+            {% if gemini_ready %}
             <label class="charge-card__select">
                 <input type="checkbox" name="items" value="{{ item.pk }}" {% if info.flag == "review" %}checked{% endif %} data-appeal-item>
                 Include in appeal
             </label>
+            {% else %}<div class="charge-card__end"></div>{% endif %}
         </li>
     {% endfor %}
     </ol>
     {% if bill.line_items.count > max_items %}<p class="muted"><small>Only the first {{ max_items }} line items are reviewed.</small></p>{% endif %}
 
+    {% if gemini_ready %}
     <div class="callout callout-info">
         <p>Questions about a charge? <a href="{% url 'claims:ask-plan' %}?plan={{ bill.insurance_plan.pk }}">Ask about your plan</a>. Answers come from your plan documents.</p>
     </div>
+    {% endif %}
 
     <section class="card appeal-card" aria-labelledby="appeal-heading">
-        <h2 id="appeal-heading">Draft an appeal letter</h2>
         {% if gemini_ready %}
+        <h2 id="appeal-heading">Draft an appeal letter</h2>
         <p class="muted">We'll write a letter to your insurer about the selected charges. Your name and email are <strong>not</strong> sent. The letter uses placeholders you fill in.</p>
         <p><label for="note">Anything the insurer should know? <span class="muted">(optional)</span></label>
             <textarea id="note" name="note" rows="3" maxlength="600"
@@ -101,7 +107,13 @@
             <button type="submit">Draft appeal letter</button>
         </div>
         {% else %}
-        <p class="muted">Appeal letters aren't available on this server yet.</p>
+        <h2 id="appeal-heading">What you can do next</h2>
+        <ol class="next-steps">
+            <li><strong>Check the rule.</strong> Read the plan rule under each flagged charge. It's the closest match from your plan documents.</li>
+            <li><strong>Ask a follow-up.</strong> <a href="{% url 'claims:ask-plan' %}?plan={{ bill.insurance_plan.pk }}">Ask about your plan</a>, for example whether emergency care out of network should be billed at in-network rates.</li>
+            <li><strong>Contact your insurer.</strong> Quote bill <strong>{{ bill.reference_number }}</strong> and the charges above, and ask them to reprocess or explain them.</li>
+        </ol>
+        <p class="muted"><small>Automatic appeal letters aren't turned on for this server.</small></p>
         {% if user.is_staff %}<details><summary><small>Setup (staff only)</small></summary><p><small>Set <code>GEMINI_API_KEY</code> in <code>.env</code> to enable appeal letters.</small></p></details>{% endif %}
         {% endif %}
     </section>
