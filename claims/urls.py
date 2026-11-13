@@ -9,6 +9,7 @@ from . import (
     views_external,
     views_forms,
     views_ai,
+    views_analytics,
     views_search,
     views_vega,
 )
@@ -22,6 +23,7 @@ urlpatterns = [
     path("bills/<int:pk>/explain/", views_ai.bill_explain, name="bill-explain"),
     path("bills/<int:pk>/appeal/", views_ai.bill_appeal, name="bill-appeal"),
     path("ask/", views_ai.ask_plan, name="ask-plan"),
+    path("analytics/", views_analytics.ai_analytics, name="ai-analytics"),
     path("bills/manual/", views.bill_list_manual, name="bill-list-manual"),
     path("bills/render/", views.bill_list_render, name="bill-list-render"),
     path("bills/cbv-base/", views.BillListBaseView.as_view(), name="bill-list-cbv-base"),
@@ -54,5 +56,5 @@ urlpatterns = [
 # New routes are private by default. Exactly one public JSON API is appended.
 for route in urlpatterns:
     if route.name != "home":
-        route.callback = private_view(route.callback, staff_only=route.name == "bill-manage", api=str(route.pattern).startswith("api/") or route.name == "export-bills-json")
+        route.callback = private_view(route.callback, staff_only=route.name in {"bill-manage", "ai-analytics"}, api=str(route.pattern).startswith("api/") or route.name == "export-bills-json")
 urlpatterns += [path("api/public/plan-types/", views_api.public_plan_types, name="public-plan-types")]

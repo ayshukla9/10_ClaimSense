@@ -160,3 +160,16 @@ RAG_MAX_TOKENS = int(os.environ.get("RAG_MAX_TOKENS", "120"))
 RAG_MAX_SECONDS = float(os.environ.get("RAG_MAX_SECONDS", "60"))
 RAG_HOURLY_LIMIT = int(os.environ.get("RAG_HOURLY_LIMIT", "30"))
 RAG_INDEX_DIR = os.environ.get("RAG_INDEX_DIR", str(BASE_DIR / ".cache" / "rag"))
+
+# P1 analytics dashboard (/analytics/, staff only). Every AI request is logged to AIRequestLog.
+AI_ANALYTICS_ENABLED = os.environ.get("AI_ANALYTICS_ENABLED", "1") == "1"
+# Cost model. Our local model has no per-call fee, so the dashboard estimates two things:
+# 1) compute cost = model-busy seconds x the hourly price of a server that could run it (an assumption: a
+#    cloud VM with 8 vCPU / 32 GB; change it to your host's real price);
+# 2) what the same tokens would cost on a hosted API: gpt-oss-120b, the A6 benchmark's hosted comparison
+#    model, at the A7 price snapshot (llm-test/results/api_pricing_snapshot.csv).
+ANALYTICS_COMPUTE_USD_PER_HOUR = float(os.environ.get("ANALYTICS_COMPUTE_USD_PER_HOUR", "0.30"))
+ANALYTICS_API_MODEL = os.environ.get("ANALYTICS_API_MODEL", "gpt-oss-120b")
+ANALYTICS_API_USD_PER_1M_IN = float(os.environ.get("ANALYTICS_API_USD_PER_1M_IN", "0.037"))
+ANALYTICS_API_USD_PER_1M_OUT = float(os.environ.get("ANALYTICS_API_USD_PER_1M_OUT", "0.17"))
+ANALYTICS_TIME_ZONE = os.environ.get("ANALYTICS_TIME_ZONE", "America/Chicago")  # days/hours on the dashboard

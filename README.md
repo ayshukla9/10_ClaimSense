@@ -31,6 +31,7 @@ python manage.py runserver         # uses settings/development.py by default
 | Ask about my plan (A9, primary) | **Ask AI** in the nav bar, `/ask/` | Question → semantic search over plan documents → local LLM answer with citations |
 | Explain with AI (A6 + A9) | Any bill → **Explain with AI** | Local LLM explains and flags each charge; each charge shows the closest plan rule |
 | Appeal letter (A6, optional) | Explain page → **Draft appeal letter** | Google Gemini, only if `GEMINI_API_KEY` is set |
+| AI analytics dashboard (P1 analytics, staff only) | **Analytics** in the nav bar, `/analytics/` | Latency, usage and cost of every AI request, each chart tied to a question; see `docs/analytics/README.md` |
 
 **Model download notes.** Nothing is committed: weights download from the Hugging Face Hub into
 `~/.cache/huggingface` the first time they are needed (`Qwen/Qwen2.5-1.5B-Instruct` ≈ 3 GB,

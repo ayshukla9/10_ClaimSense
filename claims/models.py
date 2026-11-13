@@ -190,3 +190,42 @@ class BillLineItem(models.Model):
 
     def __str__(self):
         return f"{self.bill.reference_number} - Line {self.line_number}"
+
+class AIRequestLog(models.Model):
+    """P1 analytics: one row per AI request (Ask AI, Explain with AI, appeal letter).
+
+    Written by claims.ai.usage.log_request; read by the staff-only /analytics/ dashboard.
+    Holds no bill amounts or patient names. Questions are stored because the dashboard
+    reports the most common ones, and only staff can see them.
+    """
+
+    FEATURES = [("ask", "Ask AI"), ("explain", "Explain with AI"), ("appeal", "Appeal letter")]
+
+    created_at = models.DateTimeField(db_index=True)
+    feature = models.CharField(max_length=10, choices=FEATURES, db_index=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+                             related_name="ai_requests")
+    plan_type = models.CharField(max_length=10, blank=True)
+    question = models.CharField(max_length=300, blank=True)
+    topic = models.CharField(max_length=30, blank=True, db_index=True)
+    # answered | not_found | no_results | rejected | rate_limited | model_off | fallback | retrieval_only | error | ok
+    status = models.CharField(max_length=20, db_index=True)
+    backend = models.CharField(max_length=20, blank=True)  # embeddings | keyword | model | rules | gemini
+    model_name = models.CharField(max_length=100, blank=True)
+    cached = models.BooleanField(default=False)
+    llm_calls = models.PositiveIntegerField(default=0)
+    items = models.PositiveIntegerField(default=0)  # bill line items processed (explain / appeal)
+    best_score = models.FloatField(null=True, blank=True)
+    warnings = models.PositiveIntegerField(default=0)
+    retrieval_ms = models.FloatField(default=0)
+    generation_s = models.FloatField(default=0)
+    total_s = models.FloatField(default=0)
+    prompt_tokens = models.PositiveIntegerField(default=0)
+    completion_tokens = models.PositiveIntegerField(default=0)
+    simulated = models.BooleanField(default=False, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.created_at:%Y-%m-%d %H:%M} {self.feature} {self.status}"

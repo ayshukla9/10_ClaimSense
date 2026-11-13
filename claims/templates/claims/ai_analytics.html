@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}AI analytics -- ClaimSense{% endblock %}
+{% block extra_head %}
+<style>
+.an-filters { display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: end; margin: var(--sp-3) 0 var(--sp-2); }
+.an-filters label { display: flex; flex-direction: column; gap: 4px; font-size: var(--fs-sm); color: var(--muted); font-weight: 600; }
+.an-source { font-size: var(--fs-sm); color: var(--muted); margin: 0 0 var(--sp-4); }
+.an-section { margin-top: var(--sp-6); }
+.an-section > h2 { display: flex; align-items: baseline; gap: var(--sp-3); flex-wrap: wrap; }
+.an-section > h2 small { font-size: var(--fs-sm); color: var(--muted); font-weight: 500; }
+.q-tag { display: inline-block; background: var(--brand); color: #fff; border-radius: 6px; padding: 0 7px; font-size: .8em; margin-right: 6px; font-weight: 700; }
+.chart-card__q { font-weight: 600; color: var(--ink); margin: 0 0 var(--sp-1); line-height: 1.35; }
+.chart-card__how { font-size: var(--fs-xs); color: var(--muted); margin: 0 0 var(--sp-3); }
+.chart-card__read { font-size: var(--fs-sm); background: var(--brand-tint); border-radius: var(--radius-sm); padding: var(--sp-2) var(--sp-3); margin: var(--sp-3) 0 0; }
+.chart-card__plot.short { min-height: 200px; }
+.chart-card table { font-size: var(--fs-sm); }
+.chart-card .table-wrap { margin: 0; }
+.an-wide { grid-column: 1 / -1; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>AI analytics</h1>
+    <p>How the AI features perform, how people use them, and what they cost. Each chart answers one question.</p>
+</div>
+
+<form method="get" class="an-filters" aria-label="Dashboard filters">
+    <label>Period<select name="period" onchange="this.form.submit()">{% for v, l in periods %}<option value="{{ v }}" {% if v == period %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></label>
+    <label>Data<select name="source" onchange="this.form.submit()">{% for v, l in sources %}<option value="{{ v }}" {% if v == source %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></label>
+    <label>Feature<select name="feature" onchange="this.form.submit()">{% for v, l in features %}<option value="{{ v }}" {% if v == feature %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></label>
+    <noscript><button type="submit">Apply</button></noscript>
+</form>
+<p class="an-source">{{ d.n }} request{{ d.n|pluralize }} in view: {{ d.real }} real (logged by this server) and {{ d.simulated }} simulated
+    (<code>manage.py simulate_ai_logs</code>, calibrated on the real logs). Latency = whole request, server side.</p>
+
+{% if not d.n %}
+{% include "components/empty_state.html" with text="No AI requests logged for these filters yet. Ask a question on Ask AI or run Explain with AI on a bill." %}
+{% else %}
+
+<section class="an-section" aria-labelledby="perf-h">
+<h2 id="perf-h">1 · System performance <small>{{ d.perf.model_requests }} uncached model calls</small></h2>
+<div class="kpi-grid">
+    <div class="kpi kpi--hero"><div class="kpi__label">Median latency (p50)</div><div class="kpi__value">{{ d.perf.p50|default:"—" }} s</div><div class="kpi__sub">model calls, not cached</div></div>
+    <div class="kpi"><div class="kpi__label">Slow tail (p95)</div><div class="kpi__value">{{ d.perf.p95|default:"—" }} s</div><div class="kpi__sub">{% if d.perf.tail_ratio %}{{ d.perf.tail_ratio }}× the median{% endif %}</div></div>
+    <div class="kpi"><div class="kpi__label">Consistency (CV)</div><div class="kpi__value">{{ d.perf.cv|default:"—" }}</div><div class="kpi__sub">std ÷ mean; lower = steadier</div></div>
+    <div class="kpi"><div class="kpi__label">Cached answer (p50)</div><div class="kpi__value">{{ d.perf.cached_p50|default:"—" }} s</div><div class="kpi__sub">served from the 24 h cache</div></div>
+    <div class="kpi"><div class="kpi__label">Failed / fallback</div><div class="kpi__value">{{ d.perf.degraded_pct|default:"0" }}%</div><div class="kpi__sub">of all requests</div></div>
+</div>
+<div class="chart-grid">
+    <figure class="chart-card">
+        <p class="chart-card__q"><span class="q-tag">P1</span>{{ d.questions.P1.1 }}</p>
+        <p class="chart-card__how">Histogram of request time, with p50 and p95 marked.</p>
+        <div id="chart-P1" class="chart-card__plot" role="img" aria-label="Histogram of latency"></div>
+        <p class="chart-card__read">{% if d.perf.p95 %}Half of model requests finish within <b>{{ d.perf.p50 }} s</b>; 1 in 20 takes longer than <b>{{ d.perf.p95 }} s</b> ({{ d.perf.tail_ratio }}× the median).{% else %}Not enough model calls yet.{% endif %}</p>
+    </figure>
+    <figure class="chart-card">
+        <p class="chart-card__q"><span class="q-tag">P2</span>{{ d.questions.P2.1 }}</p>
+        <p class="chart-card__how">Median (bar) and p95 (tick) per request type; the number is how many requests.</p>
+        <div id="chart-P2" class="chart-card__plot" role="img" aria-label="Latency by request type"></div>
+        {% with slow=d.perf.by_type.0 %}<p class="chart-card__read">Slowest type: <b>{{ slow.type }}</b> (median {{ slow.median }} s). Cached answers and requests stopped before the model return in well under a second.</p>{% endwith %}
+    </figure>
+    <figure class="chart-card">
+        <p class="chart-card__q"><span class="q-tag">P3</span>{{ d.questions.P3.1 }}</p>
+        <p class="chart-card__how">Each dot is one model call: output length vs. time.</p>
+        <div id="chart-P3a" class="chart-card__plot" role="img" aria-label="Scatter of output tokens against latency"></div>
+        <p class="chart-card__read">Correlation between output tokens and latency: <b>r = {{ d.perf.r_tokens_latency|default:"n/a" }}</b>{% if d.perf.r_tokens_latency and d.perf.r_tokens_latency > 0.5 %}, so longer answers explain most of the slowness; capping tokens (we use 120) caps latency{% endif %}.</p>
+    </figure>
+    <figure class="chart-card">
+        <p class="chart-card__q"><span class="q-tag">P3</span>Day to day: is latency stable?</p>
+        <p class="chart-card__how">Daily p50 and p95 of model calls.</p>
+        <div id="chart-P3b" class="chart-card__plot" role="img" aria-label="Daily latency trend"></div>
+        <p class="chart-card__read">A rising p95 with a flat p50 means occasional slow requests (cold start, busy CPU), not a slower model.</p>
+    </figure>
+</div>
+</section>
+
+<section class="an-section" aria-labelledby="user-h">
+<h2 id="user-h">2 · User behavior <small>{{ d.users.active_users }} active user{{ d.users.active_users|pluralize }}</small></h2>
+<div class="kpi-grid">
+    <div class="kpi kpi--hero"><div class="kpi__label">AI requests</div><div class="kpi__value">{{ d.users.requests }}</div><div class="kpi__sub">over {{ d.users.days }} day{{ d.users.days|pluralize }}</div></div>
+    <div class="kpi"><div class="kpi__label">Per day</div><div class="kpi__value">{{ d.users.per_day|default:"—" }}</div><div class="kpi__sub">average</div></div>
+    <div class="kpi"><div class="kpi__label">Usage trend</div><div class="kpi__value">{% if d.users.growth_pct is not None %}{% if d.users.growth_pct > 0 %}+{% endif %}{{ d.users.growth_pct }}%{% else %}—{% endif %}</div><div class="kpi__sub">2nd half vs 1st half of period</div></div>
+    <div class="kpi"><div class="kpi__label">Questions not answered</div><div class="kpi__value">{{ d.users.unanswered_pct|default:"0" }}%</div><div class="kpi__sub">no matching plan section</div></div>
+</div>
+<div class="chart-grid">
+    <figure class="chart-card an-wide">
+        <p class="chart-card__q"><span class="q-tag">U1</span>{{ d.questions.U1.1 }}</p>
+        <p class="chart-card__how">Requests per day by feature; the black line is the 7-day moving average.</p>
+        <div id="chart-U1" class="chart-card__plot short" role="img" aria-label="Requests per day"></div>
+    </figure>
+    <figure class="chart-card">
+        <p class="chart-card__q"><span class="q-tag">U2</span>{{ d.questions.U2.1 }}</p>
+        <p class="chart-card__how">Ask AI questions by topic (keyword classifier), colored by outcome.</p>
+        <div id="chart-U2" class="chart-card__plot" role="img" aria-label="Questions by topic and outcome"></div>
+    </figure>
+    <figure class="chart-card">
+        <p class="chart-card__q"><span class="q-tag">U4</span>{{ d.questions.U4.1 }}</p>
+        <p class="chart-card__how">Requests by weekday and hour (Champaign time). Darker = busier.</p>
+        <div id="chart-U4" class="chart-card__plot short" role="img" aria-label="Usage heatmap"></div>
+    </figure>
+    <figure class="chart-card">
+        <p class="chart-card__q"><span class="q-tag">U3</span>Most asked questions</p>
+        <div class="table-wrap"><table>
+            <thead><tr><th scope="col">Question</th><th scope="col" class="num">Asked</th><th scope="col" class="num">Answered</th></tr></thead>
+            <tbody>{% for q in d.users.top_questions %}<tr><td>{{ q.question }}</td><td class="num">{{ q.n }}</td><td class="num">{{ q.answered_pct }}%</td></tr>{% empty %}<tr><td colspan="3">No questions yet.</td></tr>{% endfor %}</tbody>
+        </table></div>
+    </figure>
+    <figure class="chart-card">
+        <p class="chart-card__q"><span class="q-tag">U3</span>Knowledge gaps: questions our plan documents can't answer</p>
+        <div class="table-wrap"><table>
+            <thead><tr><th scope="col">Question</th><th scope="col">Topic</th><th scope="col" class="num">Times</th></tr></thead>
+            <tbody>{% for q in d.users.gaps %}<tr><td>{{ q.question }}</td><td>{{ q.topic }}</td><td class="num">{{ q.n }}</td></tr>{% empty %}<tr><td colspan="3">None in this period.</td></tr>{% endfor %}</tbody>
+        </table></div>
+        <p class="chart-card__read">These are the next documents to add to the knowledge base (or questions to keep refusing).</p>
+    </figure>
+</div>
+</section>
+
+<section class="an-section" aria-labelledby="cost-h">
+<h2 id="cost-h">3 · Cost <small>local model: no per-call fee; estimates below</small></h2>
+<div class="kpi-grid">
+    <div class="kpi kpi--hero"><div class="kpi__label">Our server, per 1,000 requests</div><div class="kpi__value">${{ d.cost.compute_per_1k|floatformat:3 }}</div><div class="kpi__sub">model-busy time × ${{ d.cost.rate|floatformat:2 }}/h (assumed)</div></div>
+    <div class="kpi"><div class="kpi__label">Hosted API equivalent, per 1,000</div><div class="kpi__value">${{ d.cost.api_per_1k|floatformat:3 }}</div><div class="kpi__sub">{{ d.cost.api_model }} at ${{ d.cost.api_in }}/${{ d.cost.api_out }} per 1M tokens</div></div>
+    <div class="kpi"><div class="kpi__label">Tokens per model request</div><div class="kpi__value">{{ d.cost.tokens_per_model_request|default:"—" }}</div><div class="kpi__sub">{{ d.cost.tokens }} tokens in total</div></div>
+    <div class="kpi"><div class="kpi__label">Saved by the cache</div><div class="kpi__value">{{ d.cost.cache_saved_pct|default:"0" }}%</div><div class="kpi__sub">{{ d.cost.cache_hits }} cached answer{{ d.cost.cache_hits|pluralize }}</div></div>
+</div>
+<div class="chart-grid">
+    <figure class="chart-card">
+        <p class="chart-card__q"><span class="q-tag">C2</span>{{ d.questions.C2.1 }}</p>
+        <p class="chart-card__how">Prompt (input) and completion (output) tokens per topic / feature, counted with the model's own tokenizer.</p>
+        <div id="chart-C2" class="chart-card__plot" role="img" aria-label="Tokens by topic"></div>
+    </figure>
+    <figure class="chart-card">
+        <p class="chart-card__q"><span class="q-tag">C3</span>{{ d.questions.C3.1 }}</p>
+        <p class="chart-card__how">Daily estimated cost on our server vs. the same tokens on a hosted API.</p>
+        <div id="chart-C3" class="chart-card__plot" role="img" aria-label="Daily cost"></div>
+    </figure>
+    <figure class="chart-card an-wide">
+        <p class="chart-card__q"><span class="q-tag">C1</span>{{ d.questions.C1.1 }}</p>
+        <div class="table-wrap"><table>
+            <thead><tr><th scope="col">Feature / topic</th><th scope="col" class="num">Model requests</th><th scope="col" class="num">Tokens / request</th><th scope="col" class="num">Model seconds / request</th><th scope="col" class="num">Our server, $ per 1,000</th><th scope="col" class="num">Hosted API, $ per 1,000</th></tr></thead>
+            <tbody>{% for t in d.cost.tokens_table %}<tr><td>{{ t.group }}</td><td class="num">{{ t.requests }}</td><td class="num">{{ t.per_request }}</td><td class="num">{{ t.seconds }}</td><td class="num">{{ t.compute_per_1k|floatformat:3 }}</td><td class="num">{{ t.api_per_1k|floatformat:3 }}</td></tr>{% endfor %}</tbody>
+        </table></div>
+        <p class="chart-card__read">Per request, our server costs about <b>${{ d.cost.compute_per_1k|floatformat:3 }}</b> per 1,000 requests vs <b>${{ d.cost.api_per_1k|floatformat:3 }}</b> on a hosted API.
+            On a CPU our server is the <i>more expensive</i> option, because the model is busy for seconds per answer; the per-request cost tracks model seconds, not tokens.
+            We still run locally because a hosted API would send patients' health data off our server. Change the assumed server price with <code>ANALYTICS_COMPUTE_USD_PER_HOUR</code>.</p>
+    </figure>
+</div>
+</section>
+{{ d.specs|json_script:"an-specs" }}
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if d.n %}
+<script src="https://cdn.jsdelivr.net/npm/vega@5.30.0/build/vega.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5.21.0/build/vega-lite.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6.26.0/build/vega-embed.min.js"></script>
+<script>
+(function () {
+    var specs = JSON.parse(document.getElementById("an-specs").textContent);
+    var config = {
+        font: getComputedStyle(document.documentElement).getPropertyValue("--font").trim() || "system-ui, sans-serif",
+        background: null, view: {stroke: null},
+        axis: {labelColor: "#5b6b80", titleColor: "#5b6b80", labelFontSize: 11, titleFontSize: 11, titleFontWeight: 600,
+               gridColor: "#e5e7eb", domainColor: "#cbd5e1", tickColor: "#cbd5e1", labelLimit: 220},
+        legend: {orient: "bottom", direction: "horizontal", columns: 2, labelFontSize: 11, titleFontSize: 11, labelLimit: 260}
+    };
+    Object.keys(specs).forEach(function (key) {
+        var el = document.getElementById("chart-" + key);
+        if (!el) return;
+        var spec = specs[key];
+        spec.config = config;
+        spec.autosize = {type: "fit-x", contains: "padding"};
+        vegaEmbed(el, spec, {actions: false, renderer: "svg"}).catch(function (err) {
+            el.textContent = "Chart failed to load: " + err.message;
+        });
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

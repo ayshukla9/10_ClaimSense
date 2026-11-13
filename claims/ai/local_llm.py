@@ -6,11 +6,12 @@ pipeline is built, so a fresh clone needs no manual download step.
 import hashlib
 import logging
 import threading
+import time
 
 from django.conf import settings
 from django.core.cache import cache
 
-from . import guardrails, prompts
+from . import guardrails, prompts, usage
 
 log = logging.getLogger(__name__)
 
@@ -64,8 +65,26 @@ def generate(messages, max_new_tokens, stop_strings=None, max_seconds=None):
               "max_time": max_seconds or settings.LOCAL_LLM_MAX_SECONDS}
     if stop_strings:
         kwargs.update(stop_strings=stop_strings, tokenizer=pipe.tokenizer)
+    start = time.perf_counter()
     out = pipe(messages, **kwargs)
-    return out[0]["generated_text"]
+    text = out[0]["generated_text"]
+    usage.add(*count_tokens(pipe.tokenizer, messages, text), time.perf_counter() - start)
+    return text
+
+
+def count_tokens(tokenizer, messages, text):
+    """(prompt tokens incl. chat template, completion tokens) with the model's own tokenizer.
+    Analytics only: returns (0, 0) instead of raising if the tokenizer API differs."""
+    try:
+        ids = tokenizer.apply_chat_template(messages, tokenize=True, add_generation_prompt=True)
+        if hasattr(ids, "keys"):  # some versions return a BatchEncoding
+            ids = ids["input_ids"]
+        prompt = len(ids[0]) if ids and isinstance(ids[0], list) else len(ids)
+        completion = len(tokenizer(text or "", add_special_tokens=False)["input_ids"])
+        return prompt, completion
+    except Exception:
+        log.debug("Token count failed", exc_info=True)
+        return 0, 0
 
 
 def _generate(messages):

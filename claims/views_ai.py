@@ -7,6 +7,7 @@
 Everything runs only on bills and plans the signed-in user may already see.
 """
 import logging
+import time
 
 from django.conf import settings
 from django.core.cache import cache
@@ -14,7 +15,7 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
 
 from .access import visible_bills
-from .ai import gemini_client, guardrails, local_llm, rag
+from .ai import gemini_client, guardrails, local_llm, rag, usage
 from .models import InsurancePlan
 
 log = logging.getLogger(__name__)
@@ -42,9 +43,17 @@ def bill_explain(request, pk):
     ctx = {"bill": bill, "model_name": settings.LOCAL_LLM_MODEL, "max_items": MAX_ITEMS,
            "gemini_ready": bool(settings.GEMINI_API_KEY)}
     if request.method == "POST":
-        rows, ctx["notice"] = _explanations(bill)
+        start = time.perf_counter()
+        with usage.track() as used:
+            rows, ctx["notice"] = _explanations(bill)
         # A9: attach the closest plan rule to each line item (retrieval only; never breaks the page).
         ctx["rows"] = [(item, {**info, "plan_rule": rag.rule_for_line_item(item)}) for item, info in rows]
+        sources = {info.get("source") for _, info in rows}
+        status = "model_off" if ctx["notice"] else "fallback" if "fallback" in sources else "ok"
+        usage.log_request(request, "explain", status=status, total_s=time.perf_counter() - start, usage=used,
+                          plan=bill.insurance_plan, backend="rules" if ctx["notice"] else "model",
+                          model_name="" if ctx["notice"] else settings.LOCAL_LLM_MODEL, items=len(rows),
+                          cached=bool(rows) and not ctx["notice"] and used["llm_calls"] == 0)
         flagged = [item for item, info in rows if info.get("flag") == "review"]
         ctx["flagged_count"] = len(flagged)
         ctx["flagged_owed"] = sum((item.estimated_patient_responsibility for item in flagged), 0)
@@ -91,18 +100,34 @@ def ask_plan(request):
     status = 200
     if request.method == "POST":
         ctx["question"] = request.POST.get("question", "")[:2000]
+        start, answer, used, outcome = time.perf_counter(), None, None, "error"
         try:
             guardrails.check_question(ctx["question"])  # validate before counting toward the limit
             if _over_limit(request.user, "rag", settings.RAG_HOURLY_LIMIT):
                 ctx["error"], status = f"Limit of {settings.RAG_HOURLY_LIMIT} questions per hour reached.", 429
+                outcome = "rate_limited"
             else:
-                ctx["answer"] = rag.answer_question(ctx["question"], plan)
+                with usage.track() as used:
+                    answer = ctx["answer"] = rag.answer_question(ctx["question"], plan)
+                outcome = answer.status
         except guardrails.UnsafeInput as exc:
-            ctx["error"], status = str(exc), 400
+            ctx["error"], status, outcome = str(exc), 400, "rejected"
         except Exception:  # model crash, out of memory, corrupt cache: never a 500 page
             log.exception("Plan question failed")
             ctx["error"], status = "Something went wrong while answering. Please try again.", 503
+        _log_question(request, plan, ctx["question"], outcome, answer, used, time.perf_counter() - start)
     return render(request, "claims/ask_plan.html", ctx, status=status)
+
+
+def _log_question(request, plan, question, outcome, answer, used, seconds):
+    """One analytics row per question, whatever happened (rejected and rate-limited questions included)."""
+    extra = {}
+    if answer is not None:
+        extra = {"backend": answer.backend, "cached": answer.cached, "best_score": round(answer.best_score, 3),
+                 "warnings": len(answer.warnings), "retrieval_ms": answer.retrieval_ms,
+                 "model_name": settings.LOCAL_LLM_MODEL if answer.llm_called or answer.cached else ""}
+    usage.log_request(request, "ask", status=outcome, total_s=seconds, usage=used,
+                      question=guardrails.clean_text(question, 300), plan=plan, **extra)
 
 
 @require_http_methods(["POST"])
@@ -124,7 +149,14 @@ def bill_appeal(request, pk):
             status = 429
         else:
             ctx["prompt"] = gemini_client.build_prompt(bill, flagged, note)
+            start = time.perf_counter()
             ctx["letter"] = gemini_client.draft_appeal(bill, flagged, note)
+            # Gemini's usage numbers aren't exposed by our client, so tokens are estimated (~4 chars per token).
+            usage.log_request(request, "appeal", status="ok", total_s=time.perf_counter() - start,
+                              usage={"llm_calls": 1, "generation_s": time.perf_counter() - start},
+                              plan=bill.insurance_plan, backend="gemini", model_name=settings.GEMINI_MODEL,
+                              items=len(flagged), prompt_tokens=usage.estimate_tokens(ctx["prompt"]),
+                              completion_tokens=usage.estimate_tokens(ctx["letter"]))
     except guardrails.UnsafeInput as exc:
         ctx["error"], status = str(exc), 400
     except gemini_client.GeminiUnavailable as exc:
