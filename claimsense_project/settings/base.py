@@ -172,3 +172,4 @@ ANALYTICS_COMPUTE_USD_PER_HOUR = float(os.environ.get("ANALYTICS_COMPUTE_USD_PER
 ANALYTICS_API_MODEL = os.environ.get("ANALYTICS_API_MODEL", "gpt-oss-120b")
 ANALYTICS_API_USD_PER_1M_IN = float(os.environ.get("ANALYTICS_API_USD_PER_1M_IN", "0.037"))
 ANALYTICS_API_USD_PER_1M_OUT = float(os.environ.get("ANALYTICS_API_USD_PER_1M_OUT", "0.17"))
+ANALYTICS_TIME_ZONE = os.environ.get("ANALYTICS_TIME_ZONE", "America/Chicago")  # days/hours on the dashboard

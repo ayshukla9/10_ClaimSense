@@ -13,6 +13,7 @@ tokens and ~7 s per bill line item, and a ~15-35 s cold start when the models fi
 import math
 import random
 from datetime import timedelta
+from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -72,7 +73,8 @@ class Command(BaseCommand):
         rng = random.Random(opts["seed"])
         users = list(get_user_model().objects.filter(is_staff=False).values_list("pk", flat=True)) or [None]
         now = timezone.now()
-        start = (now - timedelta(days=opts["days"] - 1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        local_now = timezone.localtime(now, ZoneInfo(settings.ANALYTICS_TIME_ZONE))  # usage hours in campus time
+        start = (local_now - timedelta(days=opts["days"] - 1)).replace(hour=0, minute=0, second=0, microsecond=0)
         rows, first = [], True
         for day in range(opts["days"]):
             date = start + timedelta(days=day)

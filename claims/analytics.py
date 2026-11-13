@@ -7,11 +7,14 @@ import math
 from collections import Counter, defaultdict
 from datetime import timedelta
 from statistics import mean, median, pstdev
+from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.utils import timezone
 
 from .models import AIRequestLog
+
+TZ = ZoneInfo(settings.ANALYTICS_TIME_ZONE)  # dashboard days and hours in campus time, not the server's UTC
 
 QUESTIONS = {
     "P1": ("System performance", "How is response time distributed, and how far is the slow tail (p95) from a typical request (p50)?"),
@@ -117,7 +120,7 @@ def load(period="30", source="all", feature="all", now=None):
                           "cached", "llm_calls", "items", "warnings", "retrieval_ms", "generation_s", "total_s",
                           "prompt_tokens", "completion_tokens", "simulated"))
     for r in rows:
-        local = timezone.localtime(r["created_at"])
+        local = timezone.localtime(r["created_at"], TZ)
         r["day"] = local.date().isoformat()
         r["weekday"] = local.strftime("%a")
         r["hour"] = local.hour
@@ -136,7 +139,7 @@ def _days_between(rows):
         return []
     first = min(r["created_at"] for r in rows)
     last = max(r["created_at"] for r in rows)
-    d, end, out = timezone.localtime(first).date(), timezone.localtime(last).date(), []
+    d, end, out = timezone.localtime(first, TZ).date(), timezone.localtime(last, TZ).date(), []
     while d <= end:
         out.append(d.isoformat())
         d += timedelta(days=1)
