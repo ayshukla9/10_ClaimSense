@@ -11,6 +11,7 @@
                 <a href="{% url 'claims:ask-plan' %}" {% if current == 'ask-plan' %}aria-current="page"{% endif %}>Ask AI</a>
                 <a href="{% url 'claims:reports' %}" {% if current == 'reports' or current == 'procedure-lookup' %}aria-current="page"{% endif %}>Insights</a>
                 {% if user.is_staff %}<a href="{% url 'claims:bill-manage' %}" {% if current == 'bill-manage' %}aria-current="page"{% endif %}>Manage</a>{% endif %}
+                {% if user.is_staff %}<a href="{% url 'claims:ai-analytics' %}" {% if current == 'ai-analytics' %}aria-current="page"{% endif %}>Analytics</a>{% endif %}
                 {% endif %}
             </div>
             <div class="site-nav__account">
